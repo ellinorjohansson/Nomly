@@ -1,35 +1,27 @@
 /* eslint-disable camelcase */
 import type { Metadata } from "next";
-import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
-import { Instrument_Sans, Kavoon, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import Header from "@/common/components/header/Header";
 import Footer from "@/common/components/footer/Footer";
 import ScrollToTop from "@/common/components/scrollToTop/ScrollToTop";
+import { Playfair_Display, Inter } from "next/font/google";
 
-const instrumentSans = Instrument_Sans({
+const playfair = Playfair_Display({
   subsets: ["latin"],
-  variable: "--font-instrument-sans",
+  weight: ["400", "600"],
+  variable: "--font-serif",
 });
 
-const kavoon = Kavoon({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-kavoon",
-});
-
-const instrumentSerif = Instrument_Serif({
-  subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-instrument-serif",
+  variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
-  title: "Lopply",
-  description: "Discover and match with running races around the world. Find your next adventure with Lopply's personalized race recommendations.",
+  title: "Nomly",
+  description: "",
   icons: {
-    icon: "/images/favicon.avif",
+    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75'>🍳</text></svg>",
   },
 };
 
@@ -38,8 +30,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const messages = await getMessages();
-
   return (
     <html lang="en">
       <head>
@@ -48,15 +38,11 @@ export default async function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body
-        className={`${instrumentSans.variable} ${kavoon.variable} ${instrumentSerif.variable}`}
-      >
-        <NextIntlClientProvider messages={messages}>
-            <Header />
-            <ScrollToTop />
-            {children}
-            <Footer />
-        </NextIntlClientProvider>
+      <body className={`${playfair.variable} ${inter.variable}`}>
+        <Header />
+        <ScrollToTop />
+        {children}
+        <Footer />
       </body>
     </html>
   );

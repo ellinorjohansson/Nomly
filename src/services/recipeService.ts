@@ -1,4 +1,4 @@
-import { IRecipe } from "@/models/Race";
+import { IRecipe } from "@/models/Recipe";
 
 export async function getRecipes(): Promise<IRecipe[]> {
   try {

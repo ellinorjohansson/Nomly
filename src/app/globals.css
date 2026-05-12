@@ -1,13 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #322f2f;
-  --color-secondary: #3b3536;
-  --color-primaryaccent: #f46034;
-  --color-secondaryaccent: #faf9e3;
-  --color-success: #00710d;
-  --color-error: #940000;
-  --color-errortext: #fb2c36;
+  --color-primary: #fafaf8; /* off-white background */
+  --color-secondary: #f5f3f0; /* very light beige */
+
+  --color-primaryaccent: #8b7355; /* warm brown */
+  --color-secondaryaccent: #a89968; /* soft tan */
+
+  --color-success: #3c8c68;
+  --color-error: #c44536;
+  --color-errortext: #ff8a80;
+
+  --color-text: #3d312b;
+  --color-muted: #9b8c7e;
 }
 
 html {
@@ -19,37 +24,25 @@ body {
 }
 
 h1 {
-  font-family: var(--font-instrument-serif), serif;
+  font-family: var(--font-playfair), serif;
   color: var(--color-primaryaccent);
 }
 
 h2 {
-  font-family: var(--font-kavoon), serif;
+  font-family: var(--font-playfair), serif;
   color: var(--color-primaryaccent);
-}
-
-@layer utilities {
-  .font-logo {
-    font-family: var(--font-instrument-serif), serif !important;
-  }
 }
 
 h3,
 h4,
-h5,
-p {
-  font-family: var(--font-instrument-sans), sans-serif;
+h5 {
+  font-family: var(--font-playfair), sans-serif;
   color: var(--color-secondaryaccent);
 }
 
-span {
-  font-family: var(--font-instrument-sans), sans-serif;
-}
-
-@layer utilities {
-  .font-display {
-    font-family: var(--font-kavoon), serif !important;
-  }
+span,
+p {
+  font-family: var(--font-inter), sans-serif;
 }
 
 legend {
@@ -58,38 +51,4 @@ legend {
 
 button {
   font-family: var(--font-instrument-sans), sans-serif;
-}
-
-@keyframes slide-up {
-  from {
-    transform: translateY(120%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out;
-}
-
-@layer utilities {
-  .mask-bottom-fade {
-    -webkit-mask-image: linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 1) 80%,
-      rgba(0, 0, 0, 0) 100%
-    );
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-size: cover;
-    mask-image: linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 1) 80%,
-      rgba(0, 0, 0, 0) 100%
-    );
-    mask-repeat: no-repeat;
-    mask-size: cover;
-  }
 }
