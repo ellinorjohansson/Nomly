@@ -7,7 +7,7 @@ const Header = () => {
 
   return (
     <header className="bg-primary border-b border-secondary sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <span className="text-2xl font-serif font-bold text-primaryaccent">
