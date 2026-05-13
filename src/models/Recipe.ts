@@ -2,9 +2,10 @@ import mongoose, { Schema, Model } from "mongoose";
 
 export interface IRecipe {
   _id?: string;
+  imageSrc: string;
   name: string;
   description: string;
-  tag: string;
+  tag: string[];
   cookingTime: string;
   ingredients: string;
   link: string;
@@ -13,6 +14,9 @@ export interface IRecipe {
 }
 
 const RecipeSchema = new Schema<IRecipe>({
+  imageSrc: {
+    type: String,
+  },
   name: {
     type: String,
   },
@@ -20,7 +24,8 @@ const RecipeSchema = new Schema<IRecipe>({
     type: String,
   },
   tag: {
-    type: String,
+    type: [String],
+    default: [],
   },
   cookingTime: {
     type: String,
@@ -39,7 +44,7 @@ const RecipeSchema = new Schema<IRecipe>({
   },
 });
 
-const Race: Model<IRecipe> =
-  mongoose.models.Race || mongoose.model<IRecipe>("Recipe", RecipeSchema);
+const RecipeModel: Model<IRecipe> =
+  mongoose.models.Recipe || mongoose.model<IRecipe>("Recipe", RecipeSchema);
 
-export default Race;
+export default RecipeModel;
