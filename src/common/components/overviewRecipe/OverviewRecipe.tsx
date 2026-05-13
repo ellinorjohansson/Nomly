@@ -14,7 +14,7 @@ const OverviewRecipe = ({
   imageSrc,
 }: OverviewRecipeProps) => {
   return (
-    <article className="rounded-2xl overflow-hidden shadow-md bg-white w-[400] cursor-pointer hover:shadow-primaryaccent/70 hover:shadow-2xl">
+    <article className="rounded-2xl overflow-hidden shadow-md bg-white w-[400] cursor-pointer hover:shadow-primaryaccent/70 hover:shadow-2xl transition duration-600">
       {/* Image */}
       <div className="relative w-full h-full">
         <img src={imageSrc} alt={name} className="object-cover"></img>
