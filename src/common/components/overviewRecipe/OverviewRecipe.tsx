@@ -14,17 +14,17 @@ const OverviewRecipe = ({
   imageSrc,
 }: OverviewRecipeProps) => {
   return (
-    <article className="rounded-2xl overflow-hidden shadow-md bg-white w-[400] cursor-pointer hover:shadow-primaryaccent/70 hover:shadow-2xl transition duration-600">
+    <article className="rounded-2xl overflow-hidden shadow-md bg-white w-[340] mb-10 cursor-pointer hover:shadow-primaryaccent/70 hover:shadow-2xl transition duration-600">
       {/* Image */}
-      <div className="relative w-full h-full">
-        <img src={imageSrc} alt={name} className="object-cover"></img>
+      <div className="relative w-full h-56">
+        <img src={imageSrc} alt={name} className="object-cover w-full h-full" />
       </div>
 
       {/* Content */}
       <div className="p-4">
         <h2 className="text-lg font-semibold text-black!">{name}</h2>
 
-        <p className="text-sm text-primaryaccent">{description}</p>
+        <p className="text-sm text-primaryaccent pt-2">{description}</p>
 
         {/* Bottom row */}
         <div className="flex items-center justify-between pt-5">
