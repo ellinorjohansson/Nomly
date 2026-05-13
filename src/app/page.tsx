@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
@@ -106,9 +107,17 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 bg-primary">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-serif font-bold text-center text-primaryaccent mb-16">
+      <section className="relative mx-auto h-[48vh] w-full overflow-hidden">
+        <Image
+          src="/images/background_color.avif"
+          alt=""
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-primaryaccent/20" />
+        <div className="absolute inset-0 flex flex-col items-center justify-center max-w-6xl mx-auto text-center">
+          <h2 className="text-4xl font-serif font-bold text-center text-primary! mb-16">
             Why Nomly?
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
