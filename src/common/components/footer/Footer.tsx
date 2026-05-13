@@ -6,7 +6,7 @@ const Footer = () => {
       {/* Left Column */}
       <div className="flex flex-row gap-5 justify-center items-center space-y-1 text-center sm:text-left">
         <h2 className="text-3xl font-logo">Nomly</h2>
-        <p className="text-sm mt-2 mx-auto sm:mx-0">
+        <p className="text-sm mt-2 mx-auto sm:mx-0 text-secondaryaccent">
           &copy; {new Date().getFullYear()} {"All rights reserved"}
         </p>
       </div>
