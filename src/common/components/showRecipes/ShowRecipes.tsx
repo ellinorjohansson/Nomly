@@ -29,7 +29,8 @@ const ShowRecipes = () => {
       ) : recipes.length > 0 ? (
         recipes.map((recipe, index) => (
           <OverviewRecipe
-            key={index}
+            key={recipe._id || index}
+            id={recipe._id || ""}
             name={recipe.name}
             description={recipe.description}
             tag={recipe.tag}

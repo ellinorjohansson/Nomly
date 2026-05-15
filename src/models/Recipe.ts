@@ -11,6 +11,9 @@ export interface IRecipe {
   link: string;
   prepTime: string;
   instructions: string;
+  servings?: string;
+  sourceUrl?: string;
+  sourceName?: string;
 }
 
 const RecipeSchema = new Schema<IRecipe>({
@@ -40,6 +43,15 @@ const RecipeSchema = new Schema<IRecipe>({
     type: String,
   },
   instructions: {
+    type: String,
+  },
+  servings: {
+    type: String,
+  },
+  sourceUrl: {
+    type: String,
+  },
+  sourceName: {
     type: String,
   },
 });

@@ -20,7 +20,20 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
     const body = await request.json();
-    const { name, description, tag, cookingTime, imageSrc } = body;
+    const {
+      name,
+      description,
+      tag,
+      cookingTime,
+      imageSrc,
+      ingredients,
+      link,
+      prepTime,
+      instructions,
+      servings,
+      sourceUrl,
+      sourceName,
+    } = body;
 
     const newRecipe = new Recipe({
       name,
@@ -28,6 +41,13 @@ export async function POST(request: NextRequest) {
       tag,
       cookingTime,
       imageSrc,
+      ingredients,
+      link,
+      prepTime,
+      instructions,
+      servings,
+      sourceUrl,
+      sourceName,
     });
 
     await newRecipe.save();
