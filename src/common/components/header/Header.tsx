@@ -18,12 +18,6 @@ const Header = () => {
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8">
           <Link
-            href="/"
-            className="text-secondaryaccent hover:text-primaryaccent transition"
-          >
-            Home
-          </Link>
-          <Link
             href="/recipes"
             className="text-secondaryaccent hover:text-primaryaccent transition"
           >
@@ -34,13 +28,13 @@ const Header = () => {
               href="/login"
               className="px-4 py-2 text-secondaryaccent hover:text-primaryaccent transition"
             >
-              Login
+              Sign In
             </Link>
             <Link
               href="/signup"
               className="px-4 py-2 bg-primaryaccent text-primary rounded-lg hover:opacity-90 transition"
             >
-              Sign Up
+              Get Started
             </Link>
           </div>
         </nav>
