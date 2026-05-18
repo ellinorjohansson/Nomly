@@ -106,9 +106,7 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-2xl font-serif font-bold text-primaryaccent">
-            Nomly
-          </span>
+          <h2 className="text-2xl font-logo font-bold">Nomly</h2>
         </Link>
 
         {/* Desktop Nav */}
