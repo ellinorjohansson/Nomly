@@ -1,35 +1,28 @@
 /* eslint-disable camelcase */
 import type { Metadata } from "next";
-import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
-import { Instrument_Sans, Kavoon, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import Header from "@/common/components/header/Header";
 import Footer from "@/common/components/footer/Footer";
 import ScrollToTop from "@/common/components/scrollToTop/ScrollToTop";
+import { Manrope, Sora } from "next/font/google";
 
-const instrumentSans = Instrument_Sans({
+const display = Sora({
   subsets: ["latin"],
-  variable: "--font-instrument-sans",
+  weight: ["400", "600", "700"],
+  variable: "--font-display",
 });
 
-const kavoon = Kavoon({
+const body = Manrope({
   subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-kavoon",
-});
-
-const instrumentSerif = Instrument_Serif({
-  subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-instrument-serif",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-body",
 });
 
 export const metadata: Metadata = {
-  title: "Lopply",
-  description: "Discover and match with running races around the world. Find your next adventure with Lopply's personalized race recommendations.",
+  title: "Nomly",
+  description: "",
   icons: {
-    icon: "/images/favicon.avif",
+    icon: "/images/nomly_favicon.avif",
   },
 };
 
@@ -38,8 +31,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const messages = await getMessages();
-
   return (
     <html lang="en">
       <head>
@@ -48,15 +39,11 @@ export default async function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body
-        className={`${instrumentSans.variable} ${kavoon.variable} ${instrumentSerif.variable}`}
-      >
-        <NextIntlClientProvider messages={messages}>
-            <Header />
-            <ScrollToTop />
-            {children}
-            <Footer />
-        </NextIntlClientProvider>
+      <body className={`${display.variable} ${body.variable}`}>
+        <Header />
+        <ScrollToTop />
+        {children}
+        <Footer />
       </body>
     </html>
   );

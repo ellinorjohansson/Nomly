@@ -1,13 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #322f2f;
-  --color-secondary: #3b3536;
-  --color-primaryaccent: #f46034;
-  --color-secondaryaccent: #faf9e3;
-  --color-success: #00710d;
-  --color-error: #940000;
-  --color-errortext: #fb2c36;
+  --color-primary: #fbfaf7; /* soft porcelain */
+  --color-secondary: #eef3f1; /* cool mist surface */
+
+  --color-primaryaccent: #16212b; /* deep ink */
+  --color-secondaryaccent: #4b7f73; /* muted teal */
+
+  --color-success: #2f8f6b;
+  --color-error: #c75252;
+  --color-errortext: #ffb3ad;
+
+  --color-text: #24303a;
+  --color-muted: #7d8790;
 }
 
 html {
@@ -16,80 +21,39 @@ html {
 
 body {
   background-color: var(--color-primary);
+  color: var(--color-text);
+  font-family: var(--font-body), sans-serif;
 }
 
 h1 {
-  font-family: var(--font-instrument-serif), serif;
+  font-family: var(--font-display), sans-serif;
   color: var(--color-primaryaccent);
+  letter-spacing: -0.03em;
 }
 
 h2 {
-  font-family: var(--font-kavoon), serif;
+  font-family: var(--font-display), sans-serif;
   color: var(--color-primaryaccent);
-}
-
-@layer utilities {
-  .font-logo {
-    font-family: var(--font-instrument-serif), serif !important;
-  }
+  letter-spacing: -0.025em;
 }
 
 h3,
 h4,
-h5,
-p {
-  font-family: var(--font-instrument-sans), sans-serif;
+h5 {
+  font-family: var(--font-display), sans-serif;
   color: var(--color-secondaryaccent);
+  letter-spacing: -0.02em;
 }
 
-span {
-  font-family: var(--font-instrument-sans), sans-serif;
-}
-
-@layer utilities {
-  .font-display {
-    font-family: var(--font-kavoon), serif !important;
-  }
+span,
+p {
+  font-family: var(--font-body), sans-serif;
 }
 
 legend {
-  font-family: var(--font-instrument-sans), sans-serif;
+  font-family: var(--font-body), sans-serif;
 }
 
 button {
-  font-family: var(--font-instrument-sans), sans-serif;
-}
-
-@keyframes slide-up {
-  from {
-    transform: translateY(120%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out;
-}
-
-@layer utilities {
-  .mask-bottom-fade {
-    -webkit-mask-image: linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 1) 80%,
-      rgba(0, 0, 0, 0) 100%
-    );
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-size: cover;
-    mask-image: linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 1) 80%,
-      rgba(0, 0, 0, 0) 100%
-    );
-    mask-repeat: no-repeat;
-    mask-size: cover;
-  }
+  font-family: var(--font-body), sans-serif;
 }
