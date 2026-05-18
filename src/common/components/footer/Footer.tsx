@@ -19,7 +19,9 @@ const Footer = () => {
           aria-label={"Scroll to top"}
         >
           <span className="text-base">Scroll to top</span>
-          <span className="material-symbols-outlined text-2xl">arrow_upward</span>
+          <span className="material-symbols-outlined text-2xl">
+            arrow_upward
+          </span>
         </button>
       </div>
     </footer>

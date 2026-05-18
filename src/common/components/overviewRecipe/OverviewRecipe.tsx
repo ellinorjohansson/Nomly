@@ -23,7 +23,10 @@ const OverviewRecipe = ({
   imageSrc,
 }: OverviewRecipeProps) => {
   return (
-    <Link href={`/recipes/${id}`} className="block h-full w-full max-w-full sm:max-w-85">
+    <Link
+      href={`/recipes/${id}`}
+      className="block h-full w-full max-w-full sm:max-w-85"
+    >
       <article className="flex h-full flex-col rounded-2xl overflow-hidden bg-white shadow-md transition duration-600 hover:shadow-2xl hover:shadow-primaryaccent/70">
         <div className="relative w-full h-56 bg-secondaryaccent/10">
           {imageSrc ? (
