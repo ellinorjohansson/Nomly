@@ -21,7 +21,9 @@ export default function AddRecipePage() {
   });
   const [tagsInput, setTagsInput] = useState("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -73,9 +75,12 @@ export default function AddRecipePage() {
           {/* Form */}
           <div className="bg-white rounded-3xl p-8 shadow-lg">
             <h1 className="text-3xl font-serif font-bold text-primaryaccent mb-2 w-80">
-              Paste your recipe, save it the <span className="text-amber-600">Nomly</span> way
+              Paste your recipe, save it the{" "}
+              <span className="text-amber-600">Nomly</span> way
             </h1>
-            <p className="text-primaryaccent/60 mb-8">Fill in your recipe details and see the preview on the right</p>
+            <p className="text-primaryaccent/60 mb-8">
+              Fill in your recipe details and see the preview on the right
+            </p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Title */}
@@ -112,7 +117,8 @@ export default function AddRecipePage() {
               {/* Ingredients */}
               <div>
                 <label className="block text-sm font-semibold text-primaryaccent mb-3">
-                  Ingredients <span className="text-error">*</span>
+                  Ingredients <span className="text-error">*</span> (one per
+                  line)
                 </label>
                 <textarea
                   name="ingredients"
@@ -128,7 +134,8 @@ export default function AddRecipePage() {
               {/* Instructions */}
               <div>
                 <label className="block text-sm font-semibold text-primaryaccent mb-3">
-                  Instructions <span className="text-error">*</span>
+                  Instructions <span className="text-error">*</span> (one step
+                  per line)
                 </label>
                 <textarea
                   name="instructions"
@@ -232,7 +239,7 @@ export default function AddRecipePage() {
               {/* Tags */}
               <div>
                 <label className="block text-sm font-semibold text-primaryaccent mb-3">
-                  Tags
+                  Tags (comma separated)
                 </label>
                 <input
                   type="text"
@@ -255,7 +262,10 @@ export default function AddRecipePage() {
               </button>
             </form>
 
-            <Link href="/recipes" className="inline-block mt-6 text-primaryaccent/60 hover:text-primaryaccent transition">
+            <Link
+              href="/recipes"
+              className="inline-block mt-6 text-primaryaccent/60 hover:text-primaryaccent transition"
+            >
               ← Back to recipes
             </Link>
           </div>

@@ -22,16 +22,24 @@ const OverviewRecipe = ({
       <article className="flex h-full flex-col rounded-2xl overflow-hidden bg-white shadow-md transition duration-600 hover:shadow-2xl hover:shadow-primaryaccent/70">
         <div className="relative w-full h-56 bg-secondaryaccent/10">
           {imageSrc ? (
-            <img src={imageSrc} alt={name} className="object-cover w-full h-full" />
+            <img
+              src={imageSrc}
+              alt={name}
+              className="object-cover w-full h-full"
+            />
           ) : (
             <div className="flex h-full items-center justify-center text-secondaryaccent">
-              <span className="material-symbols-outlined text-5xl">restaurant</span>
+              <span className="material-symbols-outlined text-5xl">
+                restaurant
+              </span>
             </div>
           )}
         </div>
 
         <div className="flex flex-1 flex-col p-4">
-          <h2 className="text-lg font-semibold text-black! line-clamp-2 min-h-14">{name}</h2>
+          <h2 className="text-lg font-semibold text-black! line-clamp-2 min-h-14">
+            {name}
+          </h2>
 
           <p className="pt-2 text-sm text-primaryaccent line-clamp-3 min-h-18">
             {description}
@@ -50,8 +58,10 @@ const OverviewRecipe = ({
             </ul>
 
             <span className="flex items-center gap-1 text-xs text-secondaryaccent">
-              <span className="material-symbols-outlined text-sm!">schedule</span>
-              {cookingTime}
+              <span className="material-symbols-outlined text-sm!">
+                schedule
+              </span>
+              {cookingTime} min
             </span>
           </div>
         </div>

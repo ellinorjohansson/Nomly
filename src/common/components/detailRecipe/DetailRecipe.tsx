@@ -1,8 +1,18 @@
+/* eslint-disable @next/next/no-img-element */
 import type { IRecipe } from "@/models/Recipe";
 
 interface DetailRecipeProps {
   recipe: IRecipe;
 }
+
+const parseMinutes = (value?: string) => {
+  if (!value) {
+    return null;
+  }
+
+  const match = value.match(/\d+/);
+  return match ? Number(match[0]) : null;
+};
 
 const DetailRecipe = ({ recipe }: DetailRecipeProps) => {
   const tags = recipe.tag || [];
@@ -14,19 +24,25 @@ const DetailRecipe = ({ recipe }: DetailRecipeProps) => {
   const instructionsList = (recipe.instructions || "")
     .split("\n")
     .filter((item) => item.trim() !== "");
+  const prepMinutes = parseMinutes(recipe.prepTime);
+  const cookingMinutes = parseMinutes(recipe.cookingTime);
+  const totalMinutes =
+    prepMinutes !== null && cookingMinutes !== null
+      ? prepMinutes + cookingMinutes
+      : (prepMinutes ?? cookingMinutes);
 
   return (
-    <div className="bg-white rounded-3xl overflow-hidden shadow-xl">
-      {/* Image */}
-      <div className="relative w-full h-80 bg-linear-to-br from-secondaryaccent/10 to-primaryaccent/10 overflow-hidden">
+    <article className="mx-auto max-w-4xl text-text mb-20">
+      <div className="mb-8 aspect-video overflow-hidden rounded-[1.75rem] bg-linear-to-br from-secondary to-primary shadow-xl">
         {recipe.imageSrc ? (
           <img
             src={recipe.imageSrc}
             alt={recipe.name}
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover"
+            loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
+          <div className="flex h-full w-full items-center justify-center">
             <span className="material-symbols-outlined text-8xl text-primaryaccent/20">
               restaurant
             </span>
@@ -34,160 +50,175 @@ const DetailRecipe = ({ recipe }: DetailRecipeProps) => {
         )}
       </div>
 
-      {/* Content */}
-      <div className="p-8">
-        {/* Title */}
-        <h3 className="text-3xl font-serif font-bold text-primaryaccent mb-2 line-clamp-2">
-          {recipe.name}
-        </h3>
+      {tags.length > 0 && (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {tags.map((tag, index) => (
+            <span
+              key={index}
+              className="inline-flex items-center rounded-full border border-primaryaccent/10 bg-secondary px-3 py-1 text-xs font-semibold capitalize tracking-[0.02em] text-primaryaccent/85 transition-colors hover:bg-secondaryaccent/15"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
 
-        {/* Description */}
-        {recipe.description && (
-          <p className="text-base text-primaryaccent/70 mb-6 leading-relaxed">
-            {recipe.description}
-          </p>
-        )}
+      <h1 className="mb-3 text-4xl font-bold text-primaryaccent md:text-5xl">
+        {recipe.name}
+      </h1>
 
-        {/* Meta info */}
-        {(recipe.prepTime || recipe.cookingTime || recipe.servings) && (
-          <div className="flex flex-wrap gap-4 mb-8 p-4 bg-secondary rounded-2xl">
-            {recipe.prepTime && (
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-primaryaccent/10 rounded-lg">
-                  <span className="material-symbols-outlined text-primaryaccent">
-                    schedule
-                  </span>
-                </div>
-                <div className="text-sm">
-                  <div className="text-primaryaccent/60 text-xs">Prep</div>
-                  <div className="font-semibold text-primaryaccent">
-                    {recipe.prepTime}m
-                  </div>
-                </div>
-              </div>
-            )}
-            {recipe.cookingTime && (
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-primaryaccent/10 rounded-lg">
-                  <span className="material-symbols-outlined text-primaryaccent">
-                    restaurant
-                  </span>
-                </div>
-                <div className="text-sm">
-                  <div className="text-primaryaccent/60 text-xs">Cook</div>
-                  <div className="font-semibold text-primaryaccent">
-                    {recipe.cookingTime}m
-                  </div>
-                </div>
-              </div>
-            )}
-            {recipe.servings && (
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-primaryaccent/10 rounded-lg">
-                  <span className="material-symbols-outlined text-primaryaccent">
-                    people
-                  </span>
-                </div>
-                <div className="text-sm">
-                  <div className="text-primaryaccent/60 text-xs">Servings</div>
-                  <div className="font-semibold text-primaryaccent">
-                    {recipe.servings}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+      {recipe.description && (
+        <p className="mb-6 max-w-3xl text-lg leading-relaxed text-primaryaccent/75">
+          {recipe.description}
+        </p>
+      )}
 
-        {/* Ingredients */}
-        {ingredientsList.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="material-symbols-outlined text-primaryaccent">
-                shopping_basket
+      {sourceLabel && (
+        <p className="mb-6 text-sm text-primaryaccent/60">
+          Originally from{" "}
+          {sourceHref ? (
+            <a
+              href={sourceHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 font-medium text-primaryaccent hover:underline"
+            >
+              {sourceLabel}
+              <span className="material-symbols-outlined text-xs!">
+                open_in_new
               </span>
-              <h4 className="text-lg font-semibold text-primaryaccent">
-                Ingredients
-              </h4>
+            </a>
+          ) : (
+            <span className=" text-primaryaccent">{sourceLabel}</span>
+          )}
+        </p>
+      )}
+
+      {(totalMinutes !== null ||
+        recipe.prepTime ||
+        recipe.cookingTime ||
+        recipe.servings) && (
+        <div className="mb-8 flex flex-wrap gap-3">
+          {totalMinutes !== null && (
+            <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
+              <div className="rounded-xl bg-secondaryaccent/15 p-2 text-primaryaccent">
+                <span className="material-symbols-outlined text-lg">
+                  schedule
+                </span>
+              </div>
+              <div>
+                <div className="text-xs text-primaryaccent/55">Total time</div>
+                <div className="font-semibold text-primaryaccent">
+                  {totalMinutes} min
+                </div>
+              </div>
             </div>
-            <ul className="space-y-2">
-              {ingredientsList.map((ingredient, index) => (
-                <li
-                  key={index}
-                  className="flex gap-3 p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
-                >
-                  <span className="text-primaryaccent font-bold">✓</span>
-                  <span className="text-primaryaccent">{ingredient}</span>
+          )}
+
+          {recipe.prepTime && (
+            <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
+              <div className="rounded-xl bg-primaryaccent/10 p-2 text-primaryaccent">
+                <span className="material-symbols-outlined text-lg">
+                  restaurant
+                </span>
+              </div>
+              <div>
+                <div className="text-xs text-primaryaccent/55">Prep</div>
+                <div className="font-semibold text-primaryaccent">
+                  {prepMinutes !== null
+                    ? `${prepMinutes} min`
+                    : recipe.prepTime}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {recipe.cookingTime && (
+            <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
+              <div className="rounded-xl bg-secondaryaccent/20 p-2 text-primaryaccent">
+                <span className="material-symbols-outlined text-lg">
+                  local_fire_department
+                </span>
+              </div>
+              <div>
+                <div className="text-xs text-primaryaccent/55">Cook</div>
+                <div className="font-semibold text-primaryaccent">
+                  {cookingMinutes !== null
+                    ? `${cookingMinutes} min`
+                    : recipe.cookingTime}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {recipe.servings && (
+            <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
+              <div className="rounded-xl bg-primaryaccent/10 p-2 text-primaryaccent">
+                <span className="material-symbols-outlined text-lg">group</span>
+              </div>
+              <div>
+                <div className="text-xs text-primaryaccent/55">Servings</div>
+                <div className="font-semibold text-primaryaccent">
+                  {recipe.servings}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="grid gap-8 md:grid-cols-[1fr_1.45fr]">
+        {ingredientsList.length > 0 && (
+          <section aria-labelledby="ingredients-heading">
+            <h2
+              id="ingredients-heading"
+              className="mb-4 text-2xl font-bold text-primaryaccent"
+            >
+              Ingredients
+            </h2>
+            <div className="rounded-2xl border border-primaryaccent/10 bg-white p-5 shadow-sm">
+              <ul className="space-y-3">
+                {ingredientsList.map((ingredient, index) => (
+                  <li key={index} className="flex gap-3 text-sm text-text">
+                    <span
+                      aria-hidden="true"
+                      className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-secondaryaccent"
+                    />
+                    <span>{ingredient}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
+
+        {instructionsList.length > 0 && (
+          <section aria-labelledby="instructions-heading">
+            <h2
+              id="instructions-heading"
+              className="mb-4 text-2xl font-bold text-primaryaccent"
+            >
+              Instructions
+            </h2>
+            <ol className="space-y-4">
+              {instructionsList.map((instruction, index) => (
+                <li key={index} className="flex gap-4">
+                  <span
+                    aria-hidden="true"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primaryaccent text-sm font-bold text-white"
+                  >
+                    {index + 1}
+                  </span>
+                  <p className="pt-1 leading-relaxed text-text">
+                    {instruction}
+                  </p>
                 </li>
               ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Instructions */}
-        {instructionsList.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="material-symbols-outlined text-primaryaccent">
-                info
-              </span>
-              <h4 className="text-lg font-semibold text-primaryaccent">
-                Instructions
-              </h4>
-            </div>
-            <div className="space-y-3">
-              {instructionsList.map((instruction, index) => (
-                <div key={index} className="flex gap-4">
-                  <div className="shrink-0">
-                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primaryaccent text-white text-sm font-bold">
-                      {index + 1}
-                    </div>
-                  </div>
-                  <p className="text-primaryaccent pt-1">{instruction}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Tags */}
-        {tags.length > 0 && (
-          <div className="mb-8">
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="px-4 py-2 bg-primaryaccent/10 text-primaryaccent rounded-full text-sm font-medium hover:bg-primaryaccent/20 transition-colors"
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Source */}
-        {sourceLabel && (
-          <div className="pt-6 border-t border-primaryaccent/10">
-            <p className="text-xs text-primaryaccent/60 mb-1">Source</p>
-            {sourceHref ? (
-              <a
-                href={sourceHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primaryaccent font-medium hover:text-primaryaccent/70 hover:underline transition-colors break-all"
-              >
-                {sourceLabel}
-              </a>
-            ) : (
-              <p className="text-primaryaccent font-medium break-all">
-                {sourceLabel}
-              </p>
-            )}
-          </div>
+            </ol>
+          </section>
         )}
       </div>
-    </div>
+    </article>
   );
 };
 
