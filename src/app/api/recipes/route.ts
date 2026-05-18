@@ -3,12 +3,18 @@ import { cookies } from "next/headers";
 import { getSessionFromCookies } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import Recipe from "@/models/Recipe";
+import { normalizeTags } from "@/lib/tags";
 
 export async function GET() {
   try {
     await connectDB();
     const recipes = await Recipe.find({}).lean();
-    return NextResponse.json({ success: true, data: recipes });
+    const normalizedRecipes = recipes.map((recipe) => ({
+      ...recipe,
+      tag: normalizeTags(Array.isArray(recipe.tag) ? recipe.tag : []),
+    }));
+
+    return NextResponse.json({ success: true, data: normalizedRecipes });
   } catch (error) {
     console.error("Error fetching recipes:", error);
     return NextResponse.json(
@@ -45,11 +51,12 @@ export async function POST(request: NextRequest) {
       sourceUrl,
       sourceName,
     } = body;
+    const normalizedTags = normalizeTags(Array.isArray(tag) ? tag : []);
 
     const newRecipe = new Recipe({
       name,
       description,
-      tag,
+      tag: normalizedTags,
       cookingTime,
       imageSrc,
       ingredients,
@@ -83,6 +90,12 @@ export async function PUT(request: NextRequest) {
     await connectDB();
     const body = await request.json();
     const { id, ...updateFields } = body;
+
+    if ("tag" in updateFields) {
+      updateFields.tag = normalizeTags(
+        Array.isArray(updateFields.tag) ? updateFields.tag : [],
+      );
+    }
 
     if (!id) {
       return NextResponse.json(

@@ -3,18 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import DetailRecipe from "@/common/components/detailRecipe/DetailRecipe";
+import { normalizeTags } from "@/lib/tags";
 
 interface AddRecipeFormProps {
   authorName: string;
 }
-
-const formatTag = (tag: string) => {
-  const trimmedTag = tag.trim();
-
-  return trimmedTag
-    ? trimmedTag.charAt(0).toUpperCase() + trimmedTag.slice(1)
-    : "";
-};
 
 const initialFormData = {
   name: "",
@@ -47,10 +40,7 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
 
   const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    const tags = value
-      .split(",")
-      .map((tag) => formatTag(tag))
-      .filter((tag) => tag !== "");
+    const tags = normalizeTags(value.split(","));
     setTagsInput(value);
     setFormData((prev) => ({ ...prev, tag: tags }));
   };
@@ -65,7 +55,10 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
       const response = await fetch("/api/recipes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          tag: normalizeTags(formData.tag),
+        }),
       });
 
       const payload = await response.json().catch(() => null);
