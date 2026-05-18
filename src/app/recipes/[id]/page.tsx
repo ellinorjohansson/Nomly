@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import DetailRecipe from "@/common/components/detailRecipe/DetailRecipe";
+import { getSessionFromCookies } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import Recipe from "@/models/Recipe";
 
@@ -14,6 +16,7 @@ export default async function RecipeDetailPage({
   params,
 }: RecipeDetailPageProps) {
   const { id } = await params;
+  const session = getSessionFromCookies(await cookies());
 
   await connectDB();
   const recipe = await Recipe.findById(id).lean();
@@ -34,6 +37,8 @@ export default async function RecipeDetailPage({
     servings: recipe.servings || "",
     sourceUrl: recipe.sourceUrl || "",
     sourceName: recipe.sourceName || "",
+    authorId: recipe.authorId || "",
+    authorName: recipe.authorName || "",
     link: recipe.link || "",
     tag: recipe.tag || [],
   };
@@ -45,11 +50,16 @@ export default async function RecipeDetailPage({
           href="/recipes"
           className="inline-flex items-center gap-2 text-sm text-primaryaccent/70 transition hover:text-primaryaccent"
         >
-          <span className="material-symbols-outlined text-base">arrow_back</span>
+          <span className="material-symbols-outlined text-base">
+            arrow_back
+          </span>
           Back to recipes
         </Link>
 
-        <DetailRecipe recipe={normalizedRecipe} />
+        <DetailRecipe
+          recipe={normalizedRecipe}
+          canDelete={session?.userId === normalizedRecipe.authorId}
+        />
       </div>
     </main>
   );

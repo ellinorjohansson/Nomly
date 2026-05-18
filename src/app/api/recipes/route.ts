@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { getSessionFromCookies } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import Recipe from "@/models/Recipe";
 
@@ -19,6 +21,15 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
+    const session = getSessionFromCookies(await cookies());
+
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: "Please sign in to add a recipe" },
+        { status: 401 },
+      );
+    }
+
     const body = await request.json();
     const {
       name,
@@ -48,6 +59,8 @@ export async function POST(request: NextRequest) {
       servings,
       sourceUrl,
       sourceName,
+      authorId: session.userId,
+      authorName: session.name,
     });
 
     await newRecipe.save();
@@ -102,8 +115,16 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     await connectDB();
+    const session = getSessionFromCookies(await cookies());
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
+
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: "Please sign in to delete a recipe" },
+        { status: 401 },
+      );
+    }
 
     if (!id) {
       return NextResponse.json(
@@ -112,11 +133,17 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const deletedRecipe = await Recipe.findByIdAndDelete(id);
+    const deletedRecipe = await Recipe.findOneAndDelete({
+      _id: id,
+      authorId: session.userId,
+    });
 
     if (!deletedRecipe) {
       return NextResponse.json(
-        { success: false, error: "Recipe not found" },
+        {
+          success: false,
+          error: "Recipe not found or you do not have permission to delete it",
+        },
         { status: 404 },
       );
     }

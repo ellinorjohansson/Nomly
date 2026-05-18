@@ -7,6 +7,7 @@ import type { IRecipe } from "@/models/Recipe";
 
 interface DetailRecipeProps {
   recipe: IRecipe;
+  canDelete?: boolean;
 }
 
 const parseMinutes = (value?: string) => {
@@ -18,7 +19,10 @@ const parseMinutes = (value?: string) => {
   return match ? Number(match[0]) : null;
 };
 
-const DetailRecipe = ({ recipe }: DetailRecipeProps) => {
+const DetailRecipe = ({
+  recipe,
+  canDelete = Boolean(recipe._id),
+}: DetailRecipeProps) => {
   const router = useRouter();
   const tags = recipe.tag || [];
   const sourceLabel = recipe.sourceName || recipe.sourceUrl || recipe.link;
@@ -108,6 +112,15 @@ const DetailRecipe = ({ recipe }: DetailRecipeProps) => {
       <h1 className="mb-3 text-4xl font-bold text-primaryaccent md:text-5xl">
         {recipe.name}
       </h1>
+
+      {recipe.authorName && (
+        <p className="mb-4 text-sm text-primaryaccent/60">
+          Added by{" "}
+          <span className="font-semibold text-primaryaccent">
+            {recipe.authorName}
+          </span>
+        </p>
+      )}
 
       {recipe.description && (
         <p className="mb-6 max-w-3xl text-lg leading-relaxed text-primaryaccent/75">
@@ -261,7 +274,7 @@ const DetailRecipe = ({ recipe }: DetailRecipeProps) => {
         )}
       </div>
 
-      {recipe._id && (
+      {recipe._id && canDelete && (
         <div className="mt-30 flex justify-end">
           <button
             type="button"

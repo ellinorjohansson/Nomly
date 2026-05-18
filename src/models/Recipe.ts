@@ -14,6 +14,8 @@ export interface IRecipe {
   servings?: string;
   sourceUrl?: string;
   sourceName?: string;
+  authorId?: string;
+  authorName?: string;
 }
 
 const RecipeSchema = new Schema<IRecipe>({
@@ -52,6 +54,12 @@ const RecipeSchema = new Schema<IRecipe>({
     type: String,
   },
   sourceName: {
+    type: String,
+  },
+  authorId: {
+    type: String,
+  },
+  authorName: {
     type: String,
   },
 });

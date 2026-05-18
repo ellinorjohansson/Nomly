@@ -37,11 +37,11 @@ const OverviewRecipe = ({
         </div>
 
         <div className="flex flex-1 flex-col p-4">
-          <h2 className="text-lg font-semibold text-black! line-clamp-2 min-h-14">
+          <h2 className="text-lg font-semibold text-black! line-clamp-2 min-h-8 pb-2">
             {name}
           </h2>
 
-          <p className="pt-2 text-sm text-primaryaccent line-clamp-3 min-h-18">
+          <p className="text-sm text-primaryaccent line-clamp-3 min-h-14">
             {description}
           </p>
 
