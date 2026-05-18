@@ -2,24 +2,26 @@
 
 const Footer = () => {
   return (
-    <footer className="border-t border-secondaryaccent flex flex-col sm:flex-row justify-between items-center sm:items-center text-center sm:text-left gap-y-12 py-6 px-25 bg-secondary">
+    <footer className="border-t border-secondaryaccent bg-secondary px-4 py-6 text-center sm:px-8 sm:text-left lg:px-25">
       {/* Left Column */}
-      <div className="flex flex-row gap-5 justify-center items-center space-y-1 text-center sm:text-left">
-        <h2 className="text-3xl font-logo font-bold">Nomly</h2>
-        <p className="text-sm mt-2 mx-auto sm:mx-0 text-secondaryaccent">
-          &copy; {new Date().getFullYear()} {"All rights reserved"}
-        </p>
-      </div>
+      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 sm:flex-row sm:items-center">
+        <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-end sm:gap-5">
+          <h2 className="text-3xl font-logo font-bold">Nomly</h2>
+          <p className="text-sm text-secondaryaccent">
+            &copy; {new Date().getFullYear()} {"All rights reserved"}
+          </p>
+        </div>
 
-      {/* Right Column */}
-      <button
-        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className="flex items-center gap-1 cursor-pointer text-primaryaccent mt-6 mb-10 sm:mt-0 sm:mb-0"
-        aria-label={"Scroll to top"}
-      >
-        <span className="text-base">Scroll to top</span>
-        <span className="material-symbols-outlined text-2xl">arrow_upward</span>
-      </button>
+        {/* Right Column */}
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="flex items-center gap-1 text-primaryaccent"
+          aria-label={"Scroll to top"}
+        >
+          <span className="text-base">Scroll to top</span>
+          <span className="material-symbols-outlined text-2xl">arrow_upward</span>
+        </button>
+      </div>
     </footer>
   );
 };

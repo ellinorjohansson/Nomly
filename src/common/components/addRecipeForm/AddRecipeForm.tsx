@@ -90,8 +90,8 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
     <main className="min-h-screen bg-primary px-4 py-8">
       <div className="mx-auto max-w-7xl">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
-          <div className="rounded-3xl bg-white p-8 shadow-lg">
-            <h1 className="mb-2 w-80 text-3xl font-serif font-bold text-primaryaccent">
+          <div className="rounded-3xl bg-white p-5 shadow-lg sm:p-8">
+            <h1 className="mb-2 max-w-sm text-3xl font-serif font-bold text-primaryaccent">
               Paste your recipe, save it the{" "}
               <span className="text-amber-600">Nomly</span> way
             </h1>
@@ -167,7 +167,7 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
                   <label className="mb-3 block text-sm font-semibold text-primaryaccent">
                     Prep time
@@ -223,7 +223,7 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-3 block text-sm font-semibold text-primaryaccent">
                     Source URL

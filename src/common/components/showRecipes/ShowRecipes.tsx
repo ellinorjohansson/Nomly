@@ -19,7 +19,7 @@ const ShowRecipes = () => {
   }, []);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4 justify-items-center auto-rows-fr">
+    <div className="grid auto-rows-fr grid-cols-1 gap-6 py-2 sm:grid-cols-2 sm:px-4 lg:grid-cols-3 lg:py-4 justify-items-stretch">
       {loading ? (
         [...Array(6)].map((_, i) => (
           <div key={i} className="w-full">

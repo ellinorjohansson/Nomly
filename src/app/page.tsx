@@ -32,7 +32,7 @@ export default function Home() {
   return (
     <main className="w-full">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 py-20 bg-primary overflow-hidden">
+      <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-primary px-4 py-20">
         {/* Background decorations */}
         <div className="absolute inset-0 pointer-events-none">
           {/* Scattered material symbols */}
@@ -48,20 +48,20 @@ export default function Home() {
           <span className="material-symbols-outlined absolute bottom-20 right-1/4 text-6xl opacity-20 text-primaryaccent">
             lunch_dining
           </span>
-          <span className="material-symbols-outlined absolute top-1/2 left-20 text-4xl opacity-20 text-primaryaccent">
+          <span className="material-symbols-outlined absolute top-1/2 left-6 hidden text-4xl opacity-20 text-primaryaccent sm:left-20 sm:block">
             menu_book
           </span>
-          <span className="material-symbols-outlined absolute bottom-1/3 right-20 text-5xl opacity-20 text-primaryaccent">
+          <span className="material-symbols-outlined absolute bottom-1/3 right-6 hidden text-5xl opacity-20 text-primaryaccent sm:right-20 sm:block">
             dinner_dining
           </span>
         </div>
 
         {/* Content */}
-        <div className="max-w-2xl mx-auto text-center relative z-10">
-          <h1 className="text-5xl md:text-6xl font-serif font-bold text-primaryaccent mb-6">
+        <div className="relative z-10 mx-auto max-w-2xl text-center">
+          <h1 className="mb-6 text-4xl font-serif font-bold text-primaryaccent sm:text-5xl md:text-6xl">
             Your Recipe Collection
           </h1>
-          <p className="text-lg text-secondaryaccent mb-8 leading-relaxed">
+          <p className="mb-8 text-base leading-relaxed text-secondaryaccent sm:text-lg">
             Save recipes from anywhere, organize them your way, and never lose a
             great recipe again. Simple. Beautiful. Yours.
           </p>
@@ -85,7 +85,7 @@ export default function Home() {
       {/* How It Works */}
       <section className="py-20 px-4 bg-secondary">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-serif font-bold text-center text-primaryaccent mb-16">
+          <h2 className="mb-12 text-center text-3xl font-serif font-bold text-primaryaccent sm:mb-16 sm:text-4xl">
             How It Works
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -107,7 +107,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="relative mx-auto h-[48vh] w-full overflow-hidden">
+      <section className="relative mx-auto w-full overflow-hidden py-16 sm:py-20">
         <Image
           src="/images/background_color.avif"
           alt=""
@@ -116,11 +116,11 @@ export default function Home() {
           priority
         />
         <div className="absolute inset-0 bg-primaryaccent/20" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center max-w-6xl mx-auto text-center">
-          <h2 className="text-4xl font-serif font-bold text-center text-primary! mb-16">
+        <div className="relative mx-auto flex min-h-[32rem] max-w-6xl flex-col items-center justify-center px-4 text-center sm:min-h-[36rem]">
+          <h2 className="mb-10 text-center text-3xl font-serif font-bold text-primary! sm:mb-16 sm:text-4xl">
             Why Nomly?
           </h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid w-full gap-6 md:grid-cols-3 md:gap-8">
             {[
               {
                 title: "100% Free",
@@ -135,7 +135,7 @@ export default function Home() {
                 desc: "Submit the form and we handle the rest.",
               },
             ].map((feature, i) => (
-              <div key={i} className="p-8 bg-secondary rounded-lg">
+              <div key={i} className="rounded-lg bg-secondary p-6 sm:p-8">
                 <h3 className="text-lg font-serif font-bold text-primaryaccent mb-2">
                   {feature.title}
                 </h3>
@@ -149,7 +149,7 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-20 px-4 bg-secondary text-center">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-4xl font-serif font-bold text-primaryaccent mb-8">
+          <h2 className="mb-8 text-3xl font-serif font-bold text-primaryaccent sm:text-4xl">
             Ready to save your recipes?
           </h2>
           <Link
