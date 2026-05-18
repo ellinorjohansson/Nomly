@@ -13,7 +13,9 @@ const Header = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [isNavOpen, setIsNavOpen] = useState(false);
-  const [sessionUser, setSessionUser] = useState<HeaderSessionUser | null>(null);
+  const [sessionUser, setSessionUser] = useState<HeaderSessionUser | null>(
+    null,
+  );
   const [isSessionLoading, setIsSessionLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showLogoutToast, setShowLogoutToast] = useState(false);
