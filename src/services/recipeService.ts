@@ -1,8 +1,34 @@
 import { IRecipe } from "@/models/Recipe";
 
-export async function getRecipes(): Promise<IRecipe[]> {
+interface GetRecipesOptions {
+  page?: number;
+  limit?: number;
+  search?: string;
+  filter?: string;
+}
+
+interface GetRecipesResponse {
+  recipes: IRecipe[];
+  page: number;
+  total: number;
+  totalPages: number;
+}
+
+export async function getRecipes({
+  page = 1,
+  limit = 12,
+  search = "",
+  filter = "all",
+}: GetRecipesOptions = {}): Promise<GetRecipesResponse> {
   try {
-    const res = await fetch("/api/recipes", {
+    const params = new URLSearchParams({
+      page: `${page}`,
+      limit: `${limit}`,
+      search,
+      filter,
+    });
+
+    const res = await fetch(`/api/recipes?${params.toString()}`, {
       cache: "no-store",
     });
 
@@ -11,9 +37,19 @@ export async function getRecipes(): Promise<IRecipe[]> {
     }
 
     const data = await res.json();
-    return data.data || [];
+    return {
+      recipes: data.data || [],
+      page: data.pagination?.page || 1,
+      total: data.pagination?.total || 0,
+      totalPages: data.pagination?.totalPages || 1,
+    };
   } catch (error) {
     console.error("Error fetching recipes:", error);
-    return [];
+    return {
+      recipes: [],
+      page: 1,
+      total: 0,
+      totalPages: 1,
+    };
   }
 }

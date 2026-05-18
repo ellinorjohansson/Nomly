@@ -2,13 +2,93 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSessionFromCookies } from "@/lib/auth";
 import connectDB from "@/lib/db";
+import { normalizeText, RECIPE_FILTERS } from "@/lib/recipeFilters";
 import Recipe from "@/models/Recipe";
+import { normalizeTags } from "@/lib/tags";
 
-export async function GET() {
+const DEFAULT_LIMIT = 12;
+const MAX_LIMIT = 12;
+
+export async function GET(request: NextRequest) {
   try {
     await connectDB();
-    const recipes = await Recipe.find({}).lean();
-    return NextResponse.json({ success: true, data: recipes });
+    const { searchParams } = new URL(request.url);
+    const requestedPage = Number.parseInt(searchParams.get("page") || "1", 10);
+    const requestedLimit = Number.parseInt(
+      searchParams.get("limit") || `${DEFAULT_LIMIT}`,
+      10,
+    );
+    const search = searchParams.get("search") || "";
+    const filter = searchParams.get("filter") || "all";
+
+    const currentPage = Number.isNaN(requestedPage)
+      ? 1
+      : Math.max(1, requestedPage);
+    const limit = Number.isNaN(requestedLimit)
+      ? DEFAULT_LIMIT
+      : Math.min(MAX_LIMIT, Math.max(1, requestedLimit));
+
+    const recipes = await Recipe.find({}).sort({ _id: -1 }).lean();
+    const normalizedRecipes = recipes.map((recipe) => ({
+      ...recipe,
+      tag: normalizeTags(Array.isArray(recipe.tag) ? recipe.tag : []),
+    }));
+
+    const activeFilter =
+      RECIPE_FILTERS.find((recipeFilter) => recipeFilter.key === filter) ||
+      RECIPE_FILTERS[0];
+    const normalizedSearch = normalizeText(search.trim());
+
+    const matchingRecipes = normalizedRecipes.filter((recipe) => {
+      const searchableText = normalizeText(
+        [
+          recipe.name,
+          recipe.description,
+          ...(recipe.tag || []),
+          recipe.authorName,
+          recipe.sourceName,
+          recipe.ingredients,
+        ]
+          .filter(Boolean)
+          .join(" "),
+      );
+
+      const matchesFilter =
+        activeFilter.key === "all" ||
+        activeFilter.keywords.some((keyword) =>
+          searchableText.includes(normalizeText(keyword)),
+        );
+
+      if (!matchesFilter) {
+        return false;
+      }
+
+      if (!normalizedSearch) {
+        return true;
+      }
+
+      return searchableText.includes(normalizedSearch);
+    });
+
+    const total = matchingRecipes.length;
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    const safePage = Math.min(currentPage, totalPages);
+    const startIndex = (safePage - 1) * limit;
+    const paginatedRecipes = matchingRecipes.slice(
+      startIndex,
+      startIndex + limit,
+    );
+
+    return NextResponse.json({
+      success: true,
+      data: paginatedRecipes,
+      pagination: {
+        page: safePage,
+        limit,
+        total,
+        totalPages,
+      },
+    });
   } catch (error) {
     console.error("Error fetching recipes:", error);
     return NextResponse.json(
@@ -45,11 +125,12 @@ export async function POST(request: NextRequest) {
       sourceUrl,
       sourceName,
     } = body;
+    const normalizedTags = normalizeTags(Array.isArray(tag) ? tag : []);
 
     const newRecipe = new Recipe({
       name,
       description,
-      tag,
+      tag: normalizedTags,
       cookingTime,
       imageSrc,
       ingredients,
@@ -83,6 +164,12 @@ export async function PUT(request: NextRequest) {
     await connectDB();
     const body = await request.json();
     const { id, ...updateFields } = body;
+
+    if ("tag" in updateFields) {
+      updateFields.tag = normalizeTags(
+        Array.isArray(updateFields.tag) ? updateFields.tag : [],
+      );
+    }
 
     if (!id) {
       return NextResponse.json(

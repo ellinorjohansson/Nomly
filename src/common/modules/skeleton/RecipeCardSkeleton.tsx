@@ -3,7 +3,7 @@
 const RecipeCardSkeleton = () => {
   return (
     <article
-      className="w-90 cursor-pointer overflow-hidden rounded-2xl bg-white shadow-md animate-pulse"
+      className="w-full cursor-pointer overflow-hidden rounded-2xl bg-white shadow-md animate-pulse sm:max-w-90"
       aria-hidden="true"
     >
       {/* Image placeholder */}

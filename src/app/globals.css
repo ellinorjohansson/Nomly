@@ -17,12 +17,14 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 body {
   background-color: var(--color-primary);
   color: var(--color-text);
   font-family: var(--font-body), sans-serif;
+  overflow-x: clip;
 }
 
 h1 {
