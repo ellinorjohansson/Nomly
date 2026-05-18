@@ -116,7 +116,7 @@ export default function Home() {
           priority
         />
         <div className="absolute inset-0 bg-primaryaccent/20" />
-        <div className="relative mx-auto flex min-h-[32rem] max-w-6xl flex-col items-center justify-center px-4 text-center sm:min-h-[36rem]">
+        <div className="relative mx-auto flex min-h-32rem max-w-6xl flex-col items-center justify-center px-4 text-center sm:min-h-36rem">
           <h2 className="mb-10 text-center text-3xl font-serif font-bold text-primary! sm:mb-16 sm:text-4xl">
             Why Nomly?
           </h2>

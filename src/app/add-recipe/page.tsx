@@ -10,7 +10,7 @@ export default async function AddRecipePage() {
     <AddRecipeForm authorName={session.name} />
   ) : (
     <main className="min-h-screen bg-primary px-4 py-16">
-      <div className="mx-auto max-w-2xl rounded-[2rem] bg-white p-10 text-center shadow-xl">
+      <div className="mx-auto max-w-2xl rounded-2rem bg-white p-10 text-center shadow-xl">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary text-primaryaccent">
           <span className="material-symbols-outlined text-3xl">lock</span>
         </div>

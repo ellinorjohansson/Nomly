@@ -4,167 +4,45 @@ import { getRecipes } from "@/services/recipeService";
 import RecipeCardSkeleton from "@/common/modules/skeleton/RecipeCardSkeleton";
 import { IRecipe } from "@/models/Recipe";
 import { normalizeTags } from "@/lib/tags";
+import { normalizeText, RECIPE_FILTERS } from "@/lib/recipeFilters";
 
-const RECIPE_FILTERS = [
-  { key: "all", label: "Alla", keywords: [] },
-  {
-    key: "efterratt",
-    label: "Efterrätt",
-    keywords: [
-      "efterratt",
-      "dessert",
-      "cake",
-      "cookie",
-      "sweet",
-      "kladdkaka",
-      "paj",
-      "brownie",
-      "glass",
-    ],
-  },
-  {
-    key: "pasta",
-    label: "Pasta",
-    keywords: [
-      "pasta",
-      "spaghetti",
-      "penne",
-      "lasagne",
-      "macaroni",
-      "tagliatelle",
-      "fettuccine",
-      "linguine",
-    ],
-  },
-  {
-    key: "ris",
-    label: "Ris",
-    keywords: ["ris", "rice", "fried rice", "risotto"],
-  },
-  {
-    key: "bulgur",
-    label: "Bulgur",
-    keywords: ["bulgur"],
-  },
-  {
-    key: "gryta",
-    label: "Gryta",
-    keywords: ["gryta", "stew", "casserole", "ragu"],
-  },
-  {
-    key: "kyckling",
-    label: "Kyckling",
-    keywords: ["kyckling", "chicken"],
-  },
-  {
-    key: "kott",
-    label: "Kött",
-    keywords: ["kött", "kott", "beef", "pork", "lamb", "meat"],
-  },
-  {
-    key: "fisk",
-    label: "Fisk",
-    keywords: ["fisk", "fish", "lax", "salmon", "torsk", "cod"],
-  },
-  {
-    key: "vegetariskt",
-    label: "Vegetariskt",
-    keywords: [
-      "vegetarisk",
-      "vegetariskt",
-      "vegetarian",
-      "veggie",
-      "halloumi",
-      "linser",
-      "lentil",
-      "tofu",
-    ],
-  },
-  {
-    key: "soppa",
-    label: "Soppa",
-    keywords: ["soppa", "soup", "broth"],
-  },
-  {
-    key: "sallad",
-    label: "Sallad",
-    keywords: ["sallad", "salad"],
-  },
-  {
-    key: "snabbt",
-    label: "Snabbt",
-    keywords: ["snabb", "quick", "easy", "15 min", "20 min", "30 min"],
-  },
-  {
-    key: "ugn",
-    label: "Ugn",
-    keywords: ["ugn", "oven", "bakad", "roasted", "baked"],
-  },
-];
-
-const normalizeText = (value: string) =>
-  value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
+const RECIPES_PER_PAGE = 12;
 
 const ShowRecipes = () => {
   const [loading, setLoading] = useState(true);
   const [recipes, setRecipes] = useState<IRecipe[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalRecipes, setTotalRecipes] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
   const deferredSearchQuery = useDeferredValue(searchQuery);
+  const normalizedSearchQuery = normalizeText(deferredSearchQuery.trim());
 
   useEffect(() => {
     async function fetchRecipes() {
       setLoading(true);
-      const data: IRecipe[] = await getRecipes();
+      const data = await getRecipes({
+        page: currentPage,
+        limit: RECIPES_PER_PAGE,
+        search: normalizedSearchQuery,
+        filter: selectedFilter,
+      });
+
       setRecipes(
-        data.map((recipe) => ({
+        data.recipes.map((recipe) => ({
           ...recipe,
           tag: normalizeTags(recipe.tag || []),
         })),
       );
+      setCurrentPage(data.page);
+      setTotalRecipes(data.total);
+      setTotalPages(data.totalPages);
       setLoading(false);
     }
+
     fetchRecipes();
-  }, []);
-
-  const normalizedSearchQuery = normalizeText(deferredSearchQuery.trim());
-  const activeFilter =
-    RECIPE_FILTERS.find((filter) => filter.key === selectedFilter) ||
-    RECIPE_FILTERS[0];
-
-  const filteredRecipes = recipes.filter((recipe) => {
-    const searchableText = normalizeText(
-      [
-        recipe.name,
-        recipe.description,
-        ...(recipe.tag || []),
-        recipe.authorName,
-        recipe.sourceName,
-        recipe.ingredients,
-      ]
-        .filter(Boolean)
-        .join(" "),
-    );
-
-    const matchesFilter =
-      activeFilter.key === "all" ||
-      activeFilter.keywords.some((keyword) =>
-        searchableText.includes(normalizeText(keyword)),
-      );
-
-    if (!matchesFilter) {
-      return false;
-    }
-
-    if (!normalizedSearchQuery) {
-      return true;
-    }
-
-    return searchableText.includes(normalizedSearchQuery);
-  });
+  }, [currentPage, normalizedSearchQuery, selectedFilter]);
 
   const hasActiveFilters =
     Boolean(normalizedSearchQuery) || selectedFilter !== "all";
@@ -178,7 +56,7 @@ const ShowRecipes = () => {
               Filter recipes
             </p>
             <h2 className="text-2xl font-serif font-bold text-primaryaccent">
-              Find something you actually want to cook
+              Find something you want to cook
             </h2>
             <p className="text-sm text-primaryaccent/70">
               Search by recipe name, description, ingredient, or author, then
@@ -196,7 +74,10 @@ const ShowRecipes = () => {
               <input
                 type="search"
                 value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
+                onChange={(event) => {
+                  setSearchQuery(event.target.value);
+                  setCurrentPage(1);
+                }}
                 placeholder="Sök recept, ingredienser eller författare"
                 className="w-full rounded-2xl border border-primaryaccent/15 bg-white py-3 pl-11 pr-4 text-sm text-primaryaccent outline-none transition placeholder:text-primaryaccent/35 focus:border-primaryaccent/35"
               />
@@ -207,6 +88,7 @@ const ShowRecipes = () => {
               onClick={() => {
                 setSearchQuery("");
                 setSelectedFilter("all");
+                setCurrentPage(1);
               }}
               disabled={!hasActiveFilters}
               className="w-full rounded-2xl border border-primaryaccent/15 px-4 py-3 text-sm font-medium text-primaryaccent transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45 md:w-auto"
@@ -224,7 +106,10 @@ const ShowRecipes = () => {
               <button
                 key={filter.key}
                 type="button"
-                onClick={() => setSelectedFilter(filter.key)}
+                onClick={() => {
+                  setSelectedFilter(filter.key);
+                  setCurrentPage(1);
+                }}
                 className={`rounded-full px-4 py-2 text-sm font-medium transition ${
                   isActive
                     ? filter.key === "all"
@@ -241,7 +126,7 @@ const ShowRecipes = () => {
 
         {!loading && (
           <p className="mt-4 text-sm text-primaryaccent/60">
-            Showing {filteredRecipes.length} of {recipes.length} recipes
+            Showing {recipes.length} of {totalRecipes} recipes
           </p>
         )}
       </div>
@@ -253,8 +138,8 @@ const ShowRecipes = () => {
               <RecipeCardSkeleton />
             </div>
           ))
-        ) : filteredRecipes.length > 0 ? (
-          filteredRecipes.map((recipe, index) => (
+        ) : recipes.length > 0 ? (
+          recipes.map((recipe, index) => (
             <OverviewRecipe
               key={recipe._id || index}
               id={recipe._id || ""}
@@ -284,6 +169,35 @@ const ShowRecipes = () => {
           </p>
         )}
       </div>
+
+      {!loading && totalPages > 1 && (
+        <div className="flex flex-col items-center justify-between gap-3 rounded-3xl border border-primaryaccent/10 bg-white/70 px-4 py-4 sm:flex-row">
+          <p className="text-sm text-primaryaccent/65">
+            Page {currentPage} of {totalPages}
+          </p>
+
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              disabled={currentPage === 1}
+              className="flex-1 rounded-2xl border border-primaryaccent/15 px-4 py-2 text-sm font-medium text-primaryaccent transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45 sm:flex-none"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setCurrentPage((page) => Math.min(totalPages, page + 1))
+              }
+              disabled={currentPage === totalPages}
+              className="flex-1 rounded-2xl bg-primaryaccent px-4 py-2 text-sm font-medium text-primary transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45 sm:flex-none"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
