@@ -23,7 +23,7 @@ const DetailRecipe = ({ recipe }: DetailRecipeProps) => {
           <img
             src={recipe.imageSrc}
             alt={recipe.name}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -180,7 +180,9 @@ const DetailRecipe = ({ recipe }: DetailRecipeProps) => {
                 {sourceLabel}
               </a>
             ) : (
-              <p className="text-primaryaccent font-medium break-all">{sourceLabel}</p>
+              <p className="text-primaryaccent font-medium break-all">
+                {sourceLabel}
+              </p>
             )}
           </div>
         )}
