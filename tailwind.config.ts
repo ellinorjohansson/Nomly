@@ -29,8 +29,9 @@ const config: Config = {
         "6xl": "3.75rem",
       },
       fontFamily: {
-        sans: ["--font-playfair", "sans-serif"],
-        display: ["--font-inter", "serif"],
+        sans: ["var(--font-body)", "sans-serif"],
+        serif: ["var(--font-display)", "sans-serif"],
+        display: ["var(--font-display)", "sans-serif"],
       },
     },
   },

@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #fafaf8; /* off-white background */
-  --color-secondary: #f5f3f0; /* very light beige */
+  --color-primary: #fbfaf7; /* soft porcelain */
+  --color-secondary: #eef3f1; /* cool mist surface */
 
-  --color-primaryaccent: #8b7355; /* warm brown */
-  --color-secondaryaccent: #a89968; /* soft tan */
+  --color-primaryaccent: #16212b; /* deep ink */
+  --color-secondaryaccent: #4b7f73; /* muted teal */
 
-  --color-success: #3c8c68;
-  --color-error: #c44536;
-  --color-errortext: #ff8a80;
+  --color-success: #2f8f6b;
+  --color-error: #c75252;
+  --color-errortext: #ffb3ad;
 
-  --color-text: #3d312b;
-  --color-muted: #9b8c7e;
+  --color-text: #24303a;
+  --color-muted: #7d8790;
 }
 
 html {
@@ -21,34 +21,39 @@ html {
 
 body {
   background-color: var(--color-primary);
+  color: var(--color-text);
+  font-family: var(--font-body), sans-serif;
 }
 
 h1 {
-  font-family: var(--font-playfair), serif;
+  font-family: var(--font-display), sans-serif;
   color: var(--color-primaryaccent);
+  letter-spacing: -0.03em;
 }
 
 h2 {
-  font-family: var(--font-playfair), serif;
+  font-family: var(--font-display), sans-serif;
   color: var(--color-primaryaccent);
+  letter-spacing: -0.025em;
 }
 
 h3,
 h4,
 h5 {
-  font-family: var(--font-playfair), sans-serif;
+  font-family: var(--font-display), sans-serif;
   color: var(--color-secondaryaccent);
+  letter-spacing: -0.02em;
 }
 
 span,
 p {
-  font-family: var(--font-inter), sans-serif;
+  font-family: var(--font-body), sans-serif;
 }
 
 legend {
-  font-family: var(--font-instrument-sans), sans-serif;
+  font-family: var(--font-body), sans-serif;
 }
 
 button {
-  font-family: var(--font-instrument-sans), sans-serif;
+  font-family: var(--font-body), sans-serif;
 }

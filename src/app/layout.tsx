@@ -4,17 +4,18 @@ import "./globals.css";
 import Header from "@/common/components/header/Header";
 import Footer from "@/common/components/footer/Footer";
 import ScrollToTop from "@/common/components/scrollToTop/ScrollToTop";
-import { Playfair_Display, Inter } from "next/font/google";
+import { Manrope, Sora } from "next/font/google";
 
-const playfair = Playfair_Display({
+const display = Sora({
   subsets: ["latin"],
-  weight: ["400", "600"],
-  variable: "--font-serif",
+  weight: ["400", "600", "700"],
+  variable: "--font-display",
 });
 
-const inter = Inter({
+const body = Manrope({
   subsets: ["latin"],
-  variable: "--font-sans",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-body",
 });
 
 export const metadata: Metadata = {
@@ -38,7 +39,7 @@ export default async function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={`${playfair.variable} ${inter.variable}`}>
+      <body className={`${display.variable} ${body.variable}`}>
         <Header />
         <ScrollToTop />
         {children}
