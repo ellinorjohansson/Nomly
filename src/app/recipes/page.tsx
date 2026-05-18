@@ -10,10 +10,11 @@ export default function RecipesPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-serif font-bold text-primaryaccent">
-              Your recipes
+              All recipes
             </h1>
             <p className="text-secondaryaccent">
-              All your finds, in one delicious place.
+              All the best finds from you and your friends, in one delicious
+              place.
             </p>
           </div>
           <Link

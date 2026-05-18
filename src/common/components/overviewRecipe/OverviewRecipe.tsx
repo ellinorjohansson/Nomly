@@ -1,4 +1,6 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
+import { formatDuration } from "@/lib/duration";
 
 interface OverviewRecipeProps {
   id: string;
@@ -8,6 +10,9 @@ interface OverviewRecipeProps {
   cookingTime: string;
   imageSrc: string;
 }
+
+const formatTag = (tag: string) =>
+  tag ? tag.charAt(0).toUpperCase() + tag.slice(1) : "";
 
 const OverviewRecipe = ({
   id,
@@ -52,7 +57,7 @@ const OverviewRecipe = ({
                   key={index}
                   className="text-xs bg-secondaryaccent/20 px-2 py-1 rounded-full font-bold text-primaryaccent"
                 >
-                  {t}
+                  {formatTag(t)}
                 </li>
               ))}
             </ul>
@@ -61,7 +66,7 @@ const OverviewRecipe = ({
               <span className="material-symbols-outlined text-sm!">
                 schedule
               </span>
-              {cookingTime} min
+              {formatDuration(cookingTime)}
             </span>
           </div>
         </div>

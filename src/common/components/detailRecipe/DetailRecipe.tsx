@@ -3,6 +3,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  formatDuration,
+  formatMinutesAsDuration,
+  parseDurationToMinutes,
+} from "../../../lib/duration";
 import type { IRecipe } from "@/models/Recipe";
 
 interface DetailRecipeProps {
@@ -10,14 +15,8 @@ interface DetailRecipeProps {
   canDelete?: boolean;
 }
 
-const parseMinutes = (value?: string) => {
-  if (!value) {
-    return null;
-  }
-
-  const match = value.match(/\d+/);
-  return match ? Number(match[0]) : null;
-};
+const formatTag = (tag: string) =>
+  tag ? tag.charAt(0).toUpperCase() + tag.slice(1) : "";
 
 const DetailRecipe = ({
   recipe,
@@ -33,8 +32,8 @@ const DetailRecipe = ({
   const instructionsList = (recipe.instructions || "")
     .split("\n")
     .filter((item) => item.trim() !== "");
-  const prepMinutes = parseMinutes(recipe.prepTime);
-  const cookingMinutes = parseMinutes(recipe.cookingTime);
+  const prepMinutes = parseDurationToMinutes(recipe.prepTime);
+  const cookingMinutes = parseDurationToMinutes(recipe.cookingTime);
   const totalMinutes =
     prepMinutes !== null && cookingMinutes !== null
       ? prepMinutes + cookingMinutes
@@ -103,7 +102,7 @@ const DetailRecipe = ({
               key={index}
               className="inline-flex items-center rounded-full border border-primaryaccent/10 bg-secondary px-3 py-1 text-xs font-semibold capitalize tracking-[0.02em] text-primaryaccent/85 transition-colors hover:bg-secondaryaccent/15"
             >
-              {tag}
+              {formatTag(tag)}
             </span>
           ))}
         </div>
@@ -164,7 +163,7 @@ const DetailRecipe = ({
               <div>
                 <div className="text-xs text-primaryaccent/55">Total time</div>
                 <div className="font-semibold text-primaryaccent">
-                  {totalMinutes} min
+                  {formatMinutesAsDuration(totalMinutes)}
                 </div>
               </div>
             </div>
@@ -180,9 +179,7 @@ const DetailRecipe = ({
               <div>
                 <div className="text-xs text-primaryaccent/55">Prep</div>
                 <div className="font-semibold text-primaryaccent">
-                  {prepMinutes !== null
-                    ? `${prepMinutes} min`
-                    : recipe.prepTime}
+                  {formatDuration(recipe.prepTime)}
                 </div>
               </div>
             </div>
@@ -198,9 +195,7 @@ const DetailRecipe = ({
               <div>
                 <div className="text-xs text-primaryaccent/55">Cook</div>
                 <div className="font-semibold text-primaryaccent">
-                  {cookingMinutes !== null
-                    ? `${cookingMinutes} min`
-                    : recipe.cookingTime}
+                  {formatDuration(recipe.cookingTime)}
                 </div>
               </div>
             </div>

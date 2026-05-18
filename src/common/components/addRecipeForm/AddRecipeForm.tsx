@@ -8,6 +8,14 @@ interface AddRecipeFormProps {
   authorName: string;
 }
 
+const formatTag = (tag: string) => {
+  const trimmedTag = tag.trim();
+
+  return trimmedTag
+    ? trimmedTag.charAt(0).toUpperCase() + trimmedTag.slice(1)
+    : "";
+};
+
 const initialFormData = {
   name: "",
   description: "",
@@ -41,7 +49,7 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
     const value = e.target.value;
     const tags = value
       .split(",")
-      .map((tag) => tag.trim())
+      .map((tag) => formatTag(tag))
       .filter((tag) => tag !== "");
     setTagsInput(value);
     setFormData((prev) => ({ ...prev, tag: tags }));
@@ -162,27 +170,27 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                    Prep (min)
+                    Prep time
                   </label>
                   <input
                     type="text"
                     name="prepTime"
                     value={formData.prepTime}
                     onChange={handleChange}
-                    placeholder="15"
+                    placeholder="e.g. 45m or 1h 15m"
                     className="w-full rounded-xl border border-primaryaccent/20 bg-secondary px-4 py-3 text-primaryaccent placeholder:text-primaryaccent/40 focus:outline-none focus:ring-2 focus:ring-primaryaccent/30"
                   />
                 </div>
                 <div>
                   <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                    Cook (min)
+                    Cook time
                   </label>
                   <input
                     type="text"
                     name="cookingTime"
                     value={formData.cookingTime}
                     onChange={handleChange}
-                    placeholder="30"
+                    placeholder="e.g. 1h 30m"
                     className="w-full rounded-xl border border-primaryaccent/20 bg-secondary px-4 py-3 text-primaryaccent placeholder:text-primaryaccent/40 focus:outline-none focus:ring-2 focus:ring-primaryaccent/30"
                   />
                 </div>
