@@ -5,7 +5,7 @@ const Footer = () => {
     <footer className="border-t border-secondaryaccent flex flex-col sm:flex-row justify-between items-center sm:items-center text-center sm:text-left gap-y-12 py-6 px-25 bg-secondary">
       {/* Left Column */}
       <div className="flex flex-row gap-5 justify-center items-center space-y-1 text-center sm:text-left">
-        <h2 className="text-3xl font-logo">Nomly</h2>
+        <h2 className="text-3xl font-logo font-bold">Nomly</h2>
         <p className="text-sm mt-2 mx-auto sm:mx-0 text-secondaryaccent">
           &copy; {new Date().getFullYear()} {"All rights reserved"}
         </p>

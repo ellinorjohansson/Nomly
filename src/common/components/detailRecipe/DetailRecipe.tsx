@@ -1,4 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { IRecipe } from "@/models/Recipe";
 
 interface DetailRecipeProps {
@@ -15,6 +19,7 @@ const parseMinutes = (value?: string) => {
 };
 
 const DetailRecipe = ({ recipe }: DetailRecipeProps) => {
+  const router = useRouter();
   const tags = recipe.tag || [];
   const sourceLabel = recipe.sourceName || recipe.sourceUrl || recipe.link;
   const sourceHref = recipe.sourceUrl || recipe.link;
@@ -30,9 +35,46 @@ const DetailRecipe = ({ recipe }: DetailRecipeProps) => {
     prepMinutes !== null && cookingMinutes !== null
       ? prepMinutes + cookingMinutes
       : (prepMinutes ?? cookingMinutes);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const handleDeleteRecipe = async () => {
+    if (!recipe._id || isDeleting) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      const response = await fetch(
+        `/api/recipes?id=${encodeURIComponent(recipe._id)}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok || !payload?.success) {
+        throw new Error(payload?.error || "Failed to delete recipe");
+      }
+
+      setIsDeleteModalOpen(false);
+      router.push("/recipes");
+      router.refresh();
+    } catch (error) {
+      setDeleteError(
+        error instanceof Error ? error.message : "Failed to delete recipe",
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
-    <article className="mx-auto max-w-4xl text-text mb-20">
+    <article className="mx-auto max-w-4xl text-text mb-10">
       <div className="mb-8 aspect-video overflow-hidden rounded-[1.75rem] bg-linear-to-br from-secondary to-primary shadow-xl">
         {recipe.imageSrc ? (
           <img
@@ -218,6 +260,94 @@ const DetailRecipe = ({ recipe }: DetailRecipeProps) => {
           </section>
         )}
       </div>
+
+      {recipe._id && (
+        <div className="mt-30 flex justify-end">
+          <button
+            type="button"
+            onClick={() => {
+              setDeleteError(null);
+              setIsDeleteModalOpen(true);
+            }}
+            className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-error/20 px-4 py-2 text-sm font-semibold transition hover:border-error/40 hover:bg-error/5"
+          >
+            <span className="material-symbols-outlined text-base!">delete</span>
+            Delete recipe
+          </button>
+        </div>
+      )}
+
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-text/45 px-4 py-6">
+          <div className="w-full max-w-md rounded-[1.75rem] border border-primaryaccent/10 bg-primary p-6 shadow-2xl">
+            <div className="mb-4 flex items-start gap-3">
+              <div className="rounded-2xl bg-error/10 p-3 text-error">
+                <span className="material-symbols-outlined">warning</span>
+              </div>
+              <div>
+                <h2 className="mb-1 text-2xl font-bold text-primaryaccent">
+                  Delete this recipe?
+                </h2>
+                <p className="text-sm leading-relaxed text-primaryaccent/70">
+                  This action permanently removes{" "}
+                  <span className="font-semibold text-primaryaccent">
+                    {recipe.name}
+                  </span>{" "}
+                  from your recipe list. This cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-white p-4 text-sm text-primaryaccent/75 shadow-sm">
+              If you still need this recipe later, copy the source link or save
+              the details before deleting it.
+            </div>
+
+            {deleteError && (
+              <p className="mt-4 rounded-2xl border border-error/20 bg-error/5 px-4 py-3 text-sm text-error">
+                {deleteError}
+              </p>
+            )}
+
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isDeleting) {
+                    setIsDeleteModalOpen(false);
+                    setDeleteError(null);
+                  }
+                }}
+                className="cursor-pointer rounded-full border border-primaryaccent/15 bg-white px-4 py-2 text-sm font-semibold text-primaryaccent transition hover:bg-secondary"
+              >
+                Keep recipe
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteRecipe}
+                disabled={isDeleting}
+                className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-full bg-error px-4 py-2 text-sm font-semibold text-white transition hover:bg-error/90 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {isDeleting ? (
+                  <>
+                    <span className="material-symbols-outlined animate-spin text-base">
+                      progress_activity
+                    </span>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-base">
+                      delete_forever
+                    </span>
+                    Yes, delete it
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </article>
   );
 };
