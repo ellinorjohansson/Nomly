@@ -7,7 +7,7 @@ import { useState } from "react";
 export default function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = searchParams.get("next") || "/add-recipe";
+  const nextPath = searchParams.get("next") || "/recipes";
   const [formData, setFormData] = useState({
     name: "",
     email: "",

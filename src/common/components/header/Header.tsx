@@ -89,6 +89,7 @@ const Header = () => {
       setIsNavOpen(false);
       setShowLogoutToast(true);
       setIsLoggingOut(false);
+      router.push("/");
       router.refresh();
     }
   };
@@ -135,13 +136,13 @@ const Header = () => {
               ) : (
                 <>
                   <Link
-                    href="/login"
+                    href="/login?next=%2Frecipes"
                     className="px-4 py-2 text-secondaryaccent hover:text-primaryaccent transition"
                   >
                     Sign In
                   </Link>
                   <Link
-                    href="/signup"
+                    href="/signup?next=%2Frecipes"
                     className="px-4 py-2 bg-primaryaccent text-primary rounded-lg hover:opacity-90 transition"
                   >
                     Get Started
@@ -214,14 +215,14 @@ const Header = () => {
               ) : (
                 <>
                   <Link
-                    href="/login"
+                    href="/login?next=%2Frecipes"
                     className="text-secondaryaccent hover:text-primaryaccent transition"
                     onClick={() => setIsNavOpen(false)}
                   >
                     Login
                   </Link>
                   <Link
-                    href="/signup"
+                    href="/signup?next=%2Frecipes"
                     className="px-4 py-2 bg-primaryaccent text-primary rounded-lg hover:opacity-90 transition text-center"
                     onClick={() => setIsNavOpen(false)}
                   >
