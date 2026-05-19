@@ -7,6 +7,13 @@ import { normalizeTags } from "@/lib/tags";
 import { normalizeText, RECIPE_FILTERS } from "@/lib/recipeFilters";
 
 const RECIPES_PER_PAGE = 12;
+const VISIBILITY_FILTERS = [
+  { key: "all", label: "All" },
+  { key: "public", label: "Public" },
+  { key: "private", label: "Private" },
+] as const;
+
+type VisibilityFilter = (typeof VISIBILITY_FILTERS)[number]["key"];
 
 const ShowRecipes = () => {
   const [loading, setLoading] = useState(true);
@@ -16,6 +23,8 @@ const ShowRecipes = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [visibilityFilter, setVisibilityFilter] =
+    useState<VisibilityFilter>("all");
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const normalizedSearchQuery = normalizeText(deferredSearchQuery.trim());
 
@@ -27,11 +36,13 @@ const ShowRecipes = () => {
         limit: RECIPES_PER_PAGE,
         search: normalizedSearchQuery,
         filter: selectedFilter,
+        visibility: visibilityFilter,
       });
 
       setRecipes(
         data.recipes.map((recipe) => ({
           ...recipe,
+          isPrivate: Boolean(recipe.isPrivate),
           tag: normalizeTags(recipe.tag || []),
         })),
       );
@@ -42,10 +53,12 @@ const ShowRecipes = () => {
     }
 
     fetchRecipes();
-  }, [currentPage, normalizedSearchQuery, selectedFilter]);
+  }, [currentPage, normalizedSearchQuery, selectedFilter, visibilityFilter]);
 
   const hasActiveFilters =
-    Boolean(normalizedSearchQuery) || selectedFilter !== "all";
+    Boolean(normalizedSearchQuery) ||
+    selectedFilter !== "all" ||
+    visibilityFilter !== "all";
 
   return (
     <section className="space-y-6 sm:px-4">
@@ -88,6 +101,7 @@ const ShowRecipes = () => {
               onClick={() => {
                 setSearchQuery("");
                 setSelectedFilter("all");
+                setVisibilityFilter("all");
                 setCurrentPage(1);
               }}
               disabled={!hasActiveFilters}
@@ -95,6 +109,30 @@ const ShowRecipes = () => {
             >
               Clear filters
             </button>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {VISIBILITY_FILTERS.map((filter) => {
+              const isActive = visibilityFilter === filter.key;
+
+              return (
+                <button
+                  key={filter.key}
+                  type="button"
+                  onClick={() => {
+                    setVisibilityFilter(filter.key);
+                    setCurrentPage(1);
+                  }}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                    isActive
+                      ? "bg-primaryaccent text-primary shadow-sm"
+                      : "bg-white text-primaryaccent hover:bg-white/80"
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -145,12 +183,13 @@ const ShowRecipes = () => {
               id={recipe._id || ""}
               name={recipe.name}
               description={recipe.description}
+              isPrivate={recipe.isPrivate}
               tag={recipe.tag}
               cookingTime={recipe.cookingTime}
               imageSrc={recipe.imageSrc}
             />
           ))
-        ) : recipes.length > 0 ? (
+        ) : hasActiveFilters ? (
           <div className="col-span-full rounded-3xl border border-dashed border-primaryaccent/15 bg-white/70 px-6 py-12 text-center">
             <span className="material-symbols-outlined text-4xl text-primaryaccent/35">
               search_off

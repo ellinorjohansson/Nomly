@@ -5,6 +5,7 @@ interface GetRecipesOptions {
   limit?: number;
   search?: string;
   filter?: string;
+  visibility?: "all" | "public" | "private";
 }
 
 interface GetRecipesResponse {
@@ -19,6 +20,7 @@ export async function getRecipes({
   limit = 12,
   search = "",
   filter = "all",
+  visibility = "all",
 }: GetRecipesOptions = {}): Promise<GetRecipesResponse> {
   try {
     const params = new URLSearchParams({
@@ -26,6 +28,7 @@ export async function getRecipes({
       limit: `${limit}`,
       search,
       filter,
+      visibility,
     });
 
     const res = await fetch(`/api/recipes?${params.toString()}`, {

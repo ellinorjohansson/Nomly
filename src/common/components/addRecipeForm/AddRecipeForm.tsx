@@ -21,6 +21,7 @@ const initialFormData = {
   sourceUrl: "",
   sourceName: "",
   link: "",
+  isPrivate: false,
   tag: [] as string[],
 };
 
@@ -43,6 +44,10 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
     const tags = normalizeTags(value.split(","));
     setTagsInput(value);
     setFormData((prev) => ({ ...prev, tag: tags }));
+  };
+
+  const handleVisibilityChange = (isPrivate: boolean) => {
+    setFormData((prev) => ({ ...prev, isPrivate }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -256,6 +261,49 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
                   placeholder="dessert, quick, easy"
                   className="w-full rounded-xl border border-primaryaccent/20 bg-secondary px-4 py-3 text-primaryaccent placeholder:text-primaryaccent/40 focus:outline-none focus:ring-2 focus:ring-primaryaccent/30"
                 />
+              </div>
+
+              <div>
+                <p className="mb-3 block text-sm font-semibold text-primaryaccent">
+                  Visibility
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-primaryaccent/15 bg-secondary px-4 py-4 text-left transition hover:border-primaryaccent/30">
+                    <input
+                      type="radio"
+                      name="visibility"
+                      checked={!formData.isPrivate}
+                      onChange={() => handleVisibilityChange(false)}
+                      className="mt-1 h-4 w-4 border-primaryaccent text-primaryaccent focus:ring-primaryaccent/30"
+                    />
+                    <span>
+                      <span className="block text-sm font-semibold text-primaryaccent">
+                        Public
+                      </span>
+                      <span className="block text-sm text-primaryaccent/65">
+                        Everyone can see this recipe.
+                      </span>
+                    </span>
+                  </label>
+
+                  <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-primaryaccent/15 bg-secondary px-4 py-4 text-left transition hover:border-primaryaccent/30">
+                    <input
+                      type="radio"
+                      name="visibility"
+                      checked={formData.isPrivate}
+                      onChange={() => handleVisibilityChange(true)}
+                      className="mt-1 h-4 w-4 border-primaryaccent text-primaryaccent focus:ring-primaryaccent/30"
+                    />
+                    <span>
+                      <span className="block text-sm font-semibold text-primaryaccent">
+                        Private
+                      </span>
+                      <span className="block text-sm text-primaryaccent/65">
+                        Only you can see this recipe.
+                      </span>
+                    </span>
+                  </label>
+                </div>
               </div>
 
               {submitError && (

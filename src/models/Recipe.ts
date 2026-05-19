@@ -5,6 +5,7 @@ export interface IRecipe {
   imageSrc: string;
   name: string;
   description: string;
+  isPrivate?: boolean;
   tag: string[];
   cookingTime: string;
   ingredients: string;
@@ -27,6 +28,10 @@ const RecipeSchema = new Schema<IRecipe>({
   },
   description: {
     type: String,
+  },
+  isPrivate: {
+    type: Boolean,
+    default: false,
   },
   tag: {
     type: [String],

@@ -108,9 +108,17 @@ const DetailRecipe = ({
         </div>
       )}
 
-      <h1 className="mb-3 text-4xl font-bold text-primaryaccent md:text-5xl">
-        {recipe.name}
-      </h1>
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <h1 className="text-4xl font-bold text-primaryaccent md:text-5xl">
+          {recipe.name}
+        </h1>
+
+        {recipe.isPrivate && (
+          <span className="inline-flex items-center rounded-full border border-primaryaccent/15 bg-secondary px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primaryaccent">
+            Private
+          </span>
+        )}
+      </div>
 
       {recipe.authorName && (
         <p className="mb-4 text-sm text-primaryaccent/60">

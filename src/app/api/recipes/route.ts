@@ -9,9 +9,20 @@ import { normalizeTags } from "@/lib/tags";
 const DEFAULT_LIMIT = 12;
 const MAX_LIMIT = 12;
 
+type VisibilityFilter = "all" | "public" | "private";
+
+const getVisibilityFilter = (value: string | null): VisibilityFilter => {
+  if (value === "public" || value === "private") {
+    return value;
+  }
+
+  return "all";
+};
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
+    const session = getSessionFromCookies(await cookies());
     const { searchParams } = new URL(request.url);
     const requestedPage = Number.parseInt(searchParams.get("page") || "1", 10);
     const requestedLimit = Number.parseInt(
@@ -20,6 +31,7 @@ export async function GET(request: NextRequest) {
     );
     const search = searchParams.get("search") || "";
     const filter = searchParams.get("filter") || "all";
+    const visibility = getVisibilityFilter(searchParams.get("visibility"));
 
     const currentPage = Number.isNaN(requestedPage)
       ? 1
@@ -28,9 +40,25 @@ export async function GET(request: NextRequest) {
       ? DEFAULT_LIMIT
       : Math.min(MAX_LIMIT, Math.max(1, requestedLimit));
 
-    const recipes = await Recipe.find({}).sort({ _id: -1 }).lean();
+    const publicRecipeQuery = { isPrivate: { $ne: true } };
+
+    const recipeQuery =
+      visibility === "public"
+        ? publicRecipeQuery
+        : visibility === "private"
+          ? session
+            ? { isPrivate: true, authorId: session.userId }
+            : { _id: null }
+          : session
+            ? {
+                $or: [publicRecipeQuery, { authorId: session.userId }],
+              }
+            : publicRecipeQuery;
+
+    const recipes = await Recipe.find(recipeQuery).sort({ _id: -1 }).lean();
     const normalizedRecipes = recipes.map((recipe) => ({
       ...recipe,
+      isPrivate: Boolean(recipe.isPrivate),
       tag: normalizeTags(Array.isArray(recipe.tag) ? recipe.tag : []),
     }));
 
@@ -114,6 +142,7 @@ export async function POST(request: NextRequest) {
     const {
       name,
       description,
+      isPrivate,
       tag,
       cookingTime,
       imageSrc,
@@ -130,6 +159,7 @@ export async function POST(request: NextRequest) {
     const newRecipe = new Recipe({
       name,
       description,
+      isPrivate: Boolean(isPrivate),
       tag: normalizedTags,
       cookingTime,
       imageSrc,
@@ -169,6 +199,10 @@ export async function PUT(request: NextRequest) {
       updateFields.tag = normalizeTags(
         Array.isArray(updateFields.tag) ? updateFields.tag : [],
       );
+    }
+
+    if ("isPrivate" in updateFields) {
+      updateFields.isPrivate = Boolean(updateFields.isPrivate);
     }
 
     if (!id) {
