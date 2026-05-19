@@ -25,6 +25,7 @@ const ShowRecipes = () => {
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [visibilityFilter, setVisibilityFilter] =
     useState<VisibilityFilter>("all");
+  const [showOnlyUserRecipes, setShowOnlyUserRecipes] = useState(false);
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const normalizedSearchQuery = normalizeText(deferredSearchQuery.trim());
 
@@ -37,6 +38,7 @@ const ShowRecipes = () => {
         search: normalizedSearchQuery,
         filter: selectedFilter,
         visibility: visibilityFilter,
+        addedByUser: showOnlyUserRecipes,
       });
 
       setRecipes(
@@ -53,12 +55,19 @@ const ShowRecipes = () => {
     }
 
     fetchRecipes();
-  }, [currentPage, normalizedSearchQuery, selectedFilter, visibilityFilter]);
+  }, [
+    currentPage,
+    normalizedSearchQuery,
+    selectedFilter,
+    visibilityFilter,
+    showOnlyUserRecipes,
+  ]);
 
   const hasActiveFilters =
     Boolean(normalizedSearchQuery) ||
     selectedFilter !== "all" ||
-    visibilityFilter !== "all";
+    visibilityFilter !== "all" ||
+    showOnlyUserRecipes;
 
   return (
     <section className="space-y-6 sm:px-4">
@@ -102,6 +111,7 @@ const ShowRecipes = () => {
                 setSearchQuery("");
                 setSelectedFilter("all");
                 setVisibilityFilter("all");
+                setShowOnlyUserRecipes(false);
                 setCurrentPage(1);
               }}
               disabled={!hasActiveFilters}
@@ -133,6 +143,21 @@ const ShowRecipes = () => {
                 </button>
               );
             })}
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowOnlyUserRecipes((value) => !value);
+                setCurrentPage(1);
+              }}
+              className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                showOnlyUserRecipes
+                  ? "bg-secondaryaccent text-white shadow-sm"
+                  : "bg-white text-primaryaccent hover:bg-white/80"
+              }`}
+            >
+              Added by you
+            </button>
           </div>
         </div>
 

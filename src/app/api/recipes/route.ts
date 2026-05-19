@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || "";
     const filter = searchParams.get("filter") || "all";
     const visibility = getVisibilityFilter(searchParams.get("visibility"));
+    const addedByUser = searchParams.get("addedByUser") === "true";
 
     const currentPage = Number.isNaN(requestedPage)
       ? 1
@@ -42,8 +43,11 @@ export async function GET(request: NextRequest) {
 
     const publicRecipeQuery = { isPrivate: { $ne: true } };
 
-    const recipeQuery =
-      visibility === "public"
+    const recipeQuery = addedByUser
+      ? session
+        ? { authorId: session.userId }
+        : { _id: null }
+      : visibility === "public"
         ? publicRecipeQuery
         : visibility === "private"
           ? session

@@ -6,6 +6,7 @@ interface GetRecipesOptions {
   search?: string;
   filter?: string;
   visibility?: "all" | "public" | "private";
+  addedByUser?: boolean;
 }
 
 interface GetRecipesResponse {
@@ -21,6 +22,7 @@ export async function getRecipes({
   search = "",
   filter = "all",
   visibility = "all",
+  addedByUser = false,
 }: GetRecipesOptions = {}): Promise<GetRecipesResponse> {
   try {
     const params = new URLSearchParams({
@@ -29,6 +31,7 @@ export async function getRecipes({
       search,
       filter,
       visibility,
+      addedByUser: addedByUser ? "true" : "false",
     });
 
     const res = await fetch(`/api/recipes?${params.toString()}`, {
