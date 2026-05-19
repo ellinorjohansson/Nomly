@@ -80,7 +80,7 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
   };
 
   return (
-    <main className="min-h-screen bg-primary px-4 py-8">
+    <main className="min-h-screen bg-primary px-4 py-8 mb-20">
       <div className="mx-auto max-w-7xl">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
           <div className="rounded-3xl bg-white p-5 shadow-lg sm:p-8">
