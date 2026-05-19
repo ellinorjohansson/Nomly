@@ -1,78 +1,57 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import OverviewRecipe from "@/common/components/overviewRecipe/OverviewRecipe";
-import connectDB from "@/lib/db";
-import Recipe from "@/models/Recipe";
-import { normalizeTags } from "@/lib/tags";
+import RecipeCardSkeleton from "@/common/modules/skeleton/RecipeCardSkeleton";
+import { WEEKLY_MENU_DAYS, type WeeklyMenuRecipe } from "@/lib/weeklyMenu";
 
-const MENU_DAYS = ["Monday", "Wednesday", "Friday"];
-const RECIPES_PER_WEEK = MENU_DAYS.length;
+const WeeklyMenu = () => {
+  const [weeklyRecipes, setWeeklyRecipes] = useState<WeeklyMenuRecipe[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-interface WeeklyMenuRecipe {
-  _id: string;
-  name: string;
-  description: string;
-  imageSrc: string;
-  tag: string[];
-  cookingTime: string;
-}
+  useEffect(() => {
+    let isMounted = true;
 
-const getWeeklyKey = (date: Date) => {
-  const utcDate = new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
-  );
-  const day = utcDate.getUTCDay() || 7;
+    const loadWeeklyMenu = async () => {
+      setIsLoading(true);
 
-  utcDate.setUTCDate(utcDate.getUTCDate() + 4 - day);
+      try {
+        const response = await fetch("/api/weekly-menu", {
+          cache: "no-store",
+        });
 
-  const yearStart = new Date(Date.UTC(utcDate.getUTCFullYear(), 0, 1));
-  const weekNumber = Math.ceil(
-    ((utcDate.getTime() - yearStart.getTime()) / 86400000 + 1) / 7,
-  );
+        const payload = await response.json().catch(() => null);
 
-  return `${utcDate.getUTCFullYear()}-${weekNumber}`;
-};
+        if (!isMounted) {
+          return;
+        }
 
-const hashString = (value: string) => {
-  let hash = 2166136261;
+        if (response.ok && payload?.success) {
+          setWeeklyRecipes(payload.data || []);
+        } else {
+          setWeeklyRecipes([]);
+        }
+      } catch {
+        if (isMounted) {
+          setWeeklyRecipes([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
 
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
+    loadWeeklyMenu();
 
-  return hash >>> 0;
-};
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
-const pickWeeklyRecipes = (recipes: WeeklyMenuRecipe[], weeklyKey: string) =>
-  [...recipes]
-    .sort(
-      (left, right) =>
-        hashString(`${weeklyKey}:${left._id}`) -
-        hashString(`${weeklyKey}:${right._id}`),
-    )
-    .slice(0, RECIPES_PER_WEEK);
-
-const WeeklyMenu = async () => {
-  await connectDB();
-
-  const recipes = await Recipe.find({ isPrivate: { $ne: true } })
-    .select("name description imageSrc tag cookingTime")
-    .lean();
-
-  const normalizedRecipes: WeeklyMenuRecipe[] = recipes.map((recipe) => ({
-    _id: String(recipe._id),
-    name: recipe.name || "Untitled recipe",
-    description: recipe.description || "",
-    imageSrc: recipe.imageSrc || "",
-    tag: normalizeTags(Array.isArray(recipe.tag) ? recipe.tag : []),
-    cookingTime: recipe.cookingTime || "",
-  }));
-
-  if (!normalizedRecipes.length) {
+  if (!isLoading && !weeklyRecipes.length) {
     return null;
   }
-
-  const weeklyKey = getWeeklyKey(new Date());
-  const weeklyRecipes = pickWeeklyRecipes(normalizedRecipes, weeklyKey);
 
   return (
     <section className="bg-primary px-4 py-20">
@@ -91,21 +70,32 @@ const WeeklyMenu = async () => {
         </div>
 
         <div className="grid auto-rows-fr grid-cols-1 gap-6 py-2 sm:grid-cols-2 lg:grid-cols-3 lg:py-4 justify-items-stretch">
-          {weeklyRecipes.map((recipe, index) => (
-            <div key={recipe._id} className="flex w-full flex-col gap-3">
-              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primaryaccent/60">
-                {MENU_DAYS[index]}
-              </p>
-              <OverviewRecipe
-                id={recipe._id}
-                name={recipe.name}
-                description={recipe.description}
-                tag={recipe.tag}
-                cookingTime={recipe.cookingTime}
-                imageSrc={recipe.imageSrc}
-              />
-            </div>
-          ))}
+          {isLoading
+            ? WEEKLY_MENU_DAYS.map((day) => (
+                <div key={day} className="flex w-full flex-col gap-3">
+                  <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primaryaccent/60">
+                    {day}
+                  </p>
+                  <div className="w-full">
+                    <RecipeCardSkeleton />
+                  </div>
+                </div>
+              ))
+            : weeklyRecipes.map((recipe, index) => (
+                <div key={recipe._id} className="flex w-full flex-col gap-3">
+                  <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primaryaccent/60">
+                    {WEEKLY_MENU_DAYS[index]}
+                  </p>
+                  <OverviewRecipe
+                    id={recipe._id}
+                    name={recipe.name}
+                    description={recipe.description}
+                    tag={recipe.tag}
+                    cookingTime={recipe.cookingTime}
+                    imageSrc={recipe.imageSrc}
+                  />
+                </div>
+              ))}
         </div>
       </div>
     </section>

@@ -1,8 +1,6 @@
-import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import WeeklyMenu from "@/common/components/weeklyMenu/WeeklyMenu";
-import WeeklyMenuSkeleton from "@/common/components/weeklyMenu/WeeklyMenuSkeleton";
 
 export default function Home() {
   const steps = [
@@ -103,14 +101,12 @@ export default function Home() {
         </div>
       </section>
 
-      <Suspense fallback={<WeeklyMenuSkeleton />}>
-        <WeeklyMenu />
-      </Suspense>
+      <WeeklyMenu />
 
       {/* Features Section */}
       <section className="relative mx-auto w-full overflow-hidden py-16 sm:py-20">
         <Image
-          src="/images/background_color.avif"
+          src="/images/background.avif"
           alt=""
           fill
           className="object-cover"
@@ -118,7 +114,7 @@ export default function Home() {
         />
         <div className="absolute inset-0 bg-primaryaccent/20" />
         <div className="relative mx-auto flex min-h-32rem max-w-6xl flex-col items-center justify-center px-4 text-center sm:min-h-36rem">
-          <h2 className="mb-10 text-center text-3xl font-serif font-bold text-primary! sm:mb-16 sm:text-4xl">
+          <h2 className="mb-10 text-center text-3xl font-serif font-bold text-primaryaccent! sm:mb-16 sm:text-4xl">
             Why Nomly?
           </h2>
           <div className="grid w-full gap-6 md:grid-cols-3 md:gap-8">
@@ -148,7 +144,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-secondary text-center">
+      <section className="py-20 px-4 text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="mb-8 text-3xl font-serif font-bold text-primaryaccent sm:text-4xl">
             Ready to save your recipes?

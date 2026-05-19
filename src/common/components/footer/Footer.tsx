@@ -15,7 +15,7 @@ const Footer = () => {
         {/* Right Column */}
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="flex items-center gap-1 text-primaryaccent"
+          className="flex items-center gap-1 text-primaryaccent cursor-pointer"
           aria-label={"Scroll to top"}
         >
           <span className="text-base">Scroll to top</span>

@@ -1,6 +1,5 @@
 import RecipeCardSkeleton from "@/common/modules/skeleton/RecipeCardSkeleton";
-
-const MENU_DAYS = ["Monday", "Wednesday", "Friday"];
+import { WEEKLY_MENU_DAYS } from "@/lib/weeklyMenu";
 
 const WeeklyMenuSkeleton = () => {
   return (
@@ -14,7 +13,7 @@ const WeeklyMenuSkeleton = () => {
         </div>
 
         <div className="grid auto-rows-fr grid-cols-1 gap-6 py-2 sm:grid-cols-2 lg:grid-cols-3 lg:py-4 justify-items-stretch">
-          {MENU_DAYS.map((day) => (
+          {WEEKLY_MENU_DAYS.map((day) => (
             <div key={day} className="flex w-full flex-col gap-3">
               <div className="h-4 w-24 rounded-full bg-secondaryaccent/20" />
               <div className="w-full">
