@@ -47,12 +47,8 @@ export async function GET(request: NextRequest) {
       : Math.min(MAX_LIMIT, Math.max(1, requestedLimit));
 
     const publicRecipeQuery = { isPrivate: { $ne: true } };
-
-    const recipeQuery = addedByUser
-      ? session
-        ? { authorId: session.userId }
-        : { _id: null }
-      : visibility === "public"
+    const visibilityQuery =
+      visibility === "public"
         ? publicRecipeQuery
         : visibility === "private"
           ? session
@@ -63,6 +59,20 @@ export async function GET(request: NextRequest) {
                 $or: [publicRecipeQuery, { authorId: session.userId }],
               }
             : publicRecipeQuery;
+
+    const addedByUserQuery = addedByUser
+      ? session
+        ? {
+            $or: [{ authorId: session.userId }, { authorName: session.name }],
+          }
+        : { _id: null }
+      : null;
+
+    const recipeQuery = addedByUserQuery
+      ? {
+          $and: [visibilityQuery, addedByUserQuery],
+        }
+      : visibilityQuery;
 
     const recipes = await Recipe.find(recipeQuery).sort({ _id: -1 }).lean();
     const normalizedRecipes = recipes.map((recipe) => ({
