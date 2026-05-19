@@ -63,10 +63,7 @@ export async function GET(request: NextRequest) {
     const addedByUserQuery = addedByUser
       ? session
         ? {
-            $or: [
-              { authorId: session.userId },
-              { authorName: session.name },
-            ],
+            $or: [{ authorId: session.userId }, { authorName: session.name }],
           }
         : { _id: null }
       : null;
