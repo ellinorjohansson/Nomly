@@ -20,7 +20,8 @@ const body = Manrope({
 
 export const metadata: Metadata = {
   title: "Nomly",
-  description: "",
+  description:
+    "Nomly is a recipe app where you can save, browse, and share your favorite recipes.",
   icons: {
     icon: "/images/nomly_favicon.avif",
   },
