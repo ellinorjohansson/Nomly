@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import WeeklyMenu from "@/common/components/weeklyMenu/WeeklyMenu";
+import WeeklyMenuSkeleton from "@/common/components/weeklyMenu/WeeklyMenuSkeleton";
 
 export default function Home() {
   const steps = [
@@ -101,7 +103,9 @@ export default function Home() {
         </div>
       </section>
 
-      <WeeklyMenu />
+      <Suspense fallback={<WeeklyMenuSkeleton />}>
+        <WeeklyMenu />
+      </Suspense>
 
       {/* Features Section */}
       <section className="relative mx-auto w-full overflow-hidden py-16 sm:py-20">
