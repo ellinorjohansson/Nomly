@@ -10,7 +10,6 @@ export const RECIPE_FILTERS = [
       "cookie",
       "sweet",
       "kladdkaka",
-      "paj",
       "brownie",
       "glass",
     ],
@@ -86,7 +85,18 @@ export const RECIPE_FILTERS = [
   {
     key: "snabbt",
     label: "Snabbt",
-    keywords: ["snabb", "quick", "easy", "15 min", "20 min", "30 min"],
+    keywords: [
+      "snabb",
+      "snabbt",
+      "quick",
+      "easy",
+      "enkel",
+      "enkelt",
+      "latt",
+      "15 min",
+      "20 min",
+      "30 min",
+    ],
   },
   {
     key: "ugn",
@@ -100,3 +110,25 @@ export const normalizeText = (value: string) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
+
+export const matchesNormalizedKeyword = (text: string, keyword: string) => {
+  const normalizedText = normalizeText(text);
+  const normalizedKeyword = normalizeText(keyword.trim());
+
+  if (!normalizedKeyword) {
+    return false;
+  }
+
+  if (normalizedKeyword.includes(" ")) {
+    const escapedKeyword = normalizedKeyword.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      "\\$&",
+    );
+    return new RegExp(`(^|\\s)${escapedKeyword}(\\s|$)`, "i").test(
+      normalizedText,
+    );
+  }
+
+  const tokens = normalizedText.split(/[^a-z0-9]+/i).filter(Boolean);
+  return tokens.includes(normalizedKeyword);
+};

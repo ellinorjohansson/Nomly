@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSessionFromCookies } from "@/lib/auth";
 import connectDB from "@/lib/db";
-import { normalizeText, RECIPE_FILTERS } from "@/lib/recipeFilters";
+import { parseDurationToMinutes } from "@/lib/duration";
+import {
+  matchesNormalizedKeyword,
+  normalizeText,
+  RECIPE_FILTERS,
+} from "@/lib/recipeFilters";
 import Recipe from "@/models/Recipe";
 import { normalizeTags } from "@/lib/tags";
 
@@ -72,11 +77,15 @@ export async function GET(request: NextRequest) {
     const normalizedSearch = normalizeText(search.trim());
 
     const matchingRecipes = normalizedRecipes.filter((recipe) => {
+      const filterableText = [recipe.name, ...(recipe.tag || [])]
+        .filter(Boolean)
+        .join(" ");
+
       const searchableText = normalizeText(
         [
           recipe.name,
-          recipe.description,
           ...(recipe.tag || []),
+          recipe.description,
           recipe.authorName,
           recipe.sourceName,
           recipe.ingredients,
@@ -85,11 +94,23 @@ export async function GET(request: NextRequest) {
           .join(" "),
       );
 
+      const prepMinutes = parseDurationToMinutes(recipe.prepTime);
+      const cookingMinutes = parseDurationToMinutes(recipe.cookingTime);
+      const totalMinutes =
+        prepMinutes !== null && cookingMinutes !== null
+          ? prepMinutes + cookingMinutes
+          : (prepMinutes ?? cookingMinutes);
+
       const matchesFilter =
         activeFilter.key === "all" ||
-        activeFilter.keywords.some((keyword) =>
-          searchableText.includes(normalizeText(keyword)),
-        );
+        (activeFilter.key === "snabbt"
+          ? (totalMinutes !== null && totalMinutes <= 30) ||
+            activeFilter.keywords.some((keyword) =>
+              matchesNormalizedKeyword(filterableText, keyword),
+            )
+          : activeFilter.keywords.some((keyword) =>
+              matchesNormalizedKeyword(filterableText, keyword),
+            ));
 
       if (!matchesFilter) {
         return false;
