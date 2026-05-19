@@ -89,6 +89,7 @@ const Header = () => {
       setIsNavOpen(false);
       setShowLogoutToast(true);
       setIsLoggingOut(false);
+      router.push("/");
       router.refresh();
     }
   };
@@ -135,13 +136,13 @@ const Header = () => {
               ) : (
                 <>
                   <Link
-                    href="/login"
+                    href="/login?next=%2Frecipes"
                     className="px-4 py-2 text-secondaryaccent hover:text-primaryaccent transition"
                   >
                     Sign In
                   </Link>
                   <Link
-                    href="/signup"
+                    href="/signup?next=%2Frecipes"
                     className="px-4 py-2 bg-primaryaccent text-primary rounded-lg hover:opacity-90 transition"
                   >
                     Get Started
@@ -164,12 +165,21 @@ const Header = () => {
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
+            {isNavOpen ? (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 6l12 12M6 18L18 6"
+              />
+            ) : (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            )}
           </svg>
         </button>
       </div>
@@ -177,7 +187,7 @@ const Header = () => {
       {/* Mobile Nav */}
       {isNavOpen && (
         <nav className="md:hidden bg-secondary border-t border-primaryaccent/10">
-          <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col gap-3">
+          <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col gap-6">
             <Link
               href="/"
               className="text-secondaryaccent hover:text-primaryaccent transition"
@@ -198,24 +208,21 @@ const Header = () => {
                   type="button"
                   onClick={handleLogout}
                   disabled={isLoggingOut}
-                  className="flex items-center gap-2 text-left text-secondaryaccent transition hover:text-primaryaccent disabled:cursor-not-allowed disabled:opacity-70"
+                  className="flex items-center text-left text-secondaryaccent transition hover:text-primaryaccent disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  <span className="material-symbols-outlined text-[20px]">
-                    logout
-                  </span>
                   Log out
                 </button>
               ) : (
                 <>
                   <Link
-                    href="/login"
+                    href="/login?next=%2Frecipes"
                     className="text-secondaryaccent hover:text-primaryaccent transition"
                     onClick={() => setIsNavOpen(false)}
                   >
                     Login
                   </Link>
                   <Link
-                    href="/signup"
+                    href="/signup?next=%2Frecipes"
                     className="px-4 py-2 bg-primaryaccent text-primary rounded-lg hover:opacity-90 transition text-center"
                     onClick={() => setIsNavOpen(false)}
                   >

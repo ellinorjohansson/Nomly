@@ -7,6 +7,13 @@ import { normalizeTags } from "@/lib/tags";
 import { normalizeText, RECIPE_FILTERS } from "@/lib/recipeFilters";
 
 const RECIPES_PER_PAGE = 12;
+const VISIBILITY_FILTERS = [
+  { key: "all", label: "All" },
+  { key: "public", label: "Public" },
+  { key: "private", label: "Private" },
+] as const;
+
+type VisibilityFilter = (typeof VISIBILITY_FILTERS)[number]["key"];
 
 const ShowRecipes = () => {
   const [loading, setLoading] = useState(true);
@@ -16,6 +23,9 @@ const ShowRecipes = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [visibilityFilter, setVisibilityFilter] =
+    useState<VisibilityFilter>("all");
+  const [showOnlyUserRecipes, setShowOnlyUserRecipes] = useState(false);
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const normalizedSearchQuery = normalizeText(deferredSearchQuery.trim());
 
@@ -27,11 +37,14 @@ const ShowRecipes = () => {
         limit: RECIPES_PER_PAGE,
         search: normalizedSearchQuery,
         filter: selectedFilter,
+        visibility: visibilityFilter,
+        addedByUser: showOnlyUserRecipes,
       });
 
       setRecipes(
         data.recipes.map((recipe) => ({
           ...recipe,
+          isPrivate: Boolean(recipe.isPrivate),
           tag: normalizeTags(recipe.tag || []),
         })),
       );
@@ -42,10 +55,19 @@ const ShowRecipes = () => {
     }
 
     fetchRecipes();
-  }, [currentPage, normalizedSearchQuery, selectedFilter]);
+  }, [
+    currentPage,
+    normalizedSearchQuery,
+    selectedFilter,
+    visibilityFilter,
+    showOnlyUserRecipes,
+  ]);
 
   const hasActiveFilters =
-    Boolean(normalizedSearchQuery) || selectedFilter !== "all";
+    Boolean(normalizedSearchQuery) ||
+    selectedFilter !== "all" ||
+    visibilityFilter !== "all" ||
+    showOnlyUserRecipes;
 
   return (
     <section className="space-y-6 sm:px-4">
@@ -88,12 +110,53 @@ const ShowRecipes = () => {
               onClick={() => {
                 setSearchQuery("");
                 setSelectedFilter("all");
+                setVisibilityFilter("all");
+                setShowOnlyUserRecipes(false);
                 setCurrentPage(1);
               }}
               disabled={!hasActiveFilters}
               className="w-full rounded-2xl border border-primaryaccent/15 px-4 py-3 text-sm font-medium text-primaryaccent transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45 md:w-auto"
             >
               Clear filters
+            </button>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {VISIBILITY_FILTERS.map((filter) => {
+              const isActive = visibilityFilter === filter.key;
+
+              return (
+                <button
+                  key={filter.key}
+                  type="button"
+                  onClick={() => {
+                    setVisibilityFilter(filter.key);
+                    setCurrentPage(1);
+                  }}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                    isActive
+                      ? "bg-primaryaccent text-primary shadow-sm"
+                      : "bg-white text-primaryaccent hover:bg-white/80"
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              );
+            })}
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowOnlyUserRecipes((value) => !value);
+                setCurrentPage(1);
+              }}
+              className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                showOnlyUserRecipes
+                  ? "bg-secondaryaccent text-white shadow-sm"
+                  : "bg-white text-primaryaccent hover:bg-white/80"
+              }`}
+            >
+              Added by you
             </button>
           </div>
         </div>
@@ -145,12 +208,13 @@ const ShowRecipes = () => {
               id={recipe._id || ""}
               name={recipe.name}
               description={recipe.description}
+              isPrivate={recipe.isPrivate}
               tag={recipe.tag}
               cookingTime={recipe.cookingTime}
               imageSrc={recipe.imageSrc}
             />
           ))
-        ) : recipes.length > 0 ? (
+        ) : hasActiveFilters ? (
           <div className="col-span-full rounded-3xl border border-dashed border-primaryaccent/15 bg-white/70 px-6 py-12 text-center">
             <span className="material-symbols-outlined text-4xl text-primaryaccent/35">
               search_off

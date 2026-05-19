@@ -2,16 +2,32 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSessionFromCookies } from "@/lib/auth";
 import connectDB from "@/lib/db";
-import { normalizeText, RECIPE_FILTERS } from "@/lib/recipeFilters";
+import { parseDurationToMinutes } from "@/lib/duration";
+import {
+  matchesNormalizedKeyword,
+  normalizeText,
+  RECIPE_FILTERS,
+} from "@/lib/recipeFilters";
 import Recipe from "@/models/Recipe";
 import { normalizeTags } from "@/lib/tags";
 
 const DEFAULT_LIMIT = 12;
 const MAX_LIMIT = 12;
 
+type VisibilityFilter = "all" | "public" | "private";
+
+const getVisibilityFilter = (value: string | null): VisibilityFilter => {
+  if (value === "public" || value === "private") {
+    return value;
+  }
+
+  return "all";
+};
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
+    const session = getSessionFromCookies(await cookies());
     const { searchParams } = new URL(request.url);
     const requestedPage = Number.parseInt(searchParams.get("page") || "1", 10);
     const requestedLimit = Number.parseInt(
@@ -20,6 +36,8 @@ export async function GET(request: NextRequest) {
     );
     const search = searchParams.get("search") || "";
     const filter = searchParams.get("filter") || "all";
+    const visibility = getVisibilityFilter(searchParams.get("visibility"));
+    const addedByUser = searchParams.get("addedByUser") === "true";
 
     const currentPage = Number.isNaN(requestedPage)
       ? 1
@@ -28,9 +46,28 @@ export async function GET(request: NextRequest) {
       ? DEFAULT_LIMIT
       : Math.min(MAX_LIMIT, Math.max(1, requestedLimit));
 
-    const recipes = await Recipe.find({}).sort({ _id: -1 }).lean();
+    const publicRecipeQuery = { isPrivate: { $ne: true } };
+
+    const recipeQuery = addedByUser
+      ? session
+        ? { authorId: session.userId }
+        : { _id: null }
+      : visibility === "public"
+        ? publicRecipeQuery
+        : visibility === "private"
+          ? session
+            ? { isPrivate: true, authorId: session.userId }
+            : { _id: null }
+          : session
+            ? {
+                $or: [publicRecipeQuery, { authorId: session.userId }],
+              }
+            : publicRecipeQuery;
+
+    const recipes = await Recipe.find(recipeQuery).sort({ _id: -1 }).lean();
     const normalizedRecipes = recipes.map((recipe) => ({
       ...recipe,
+      isPrivate: Boolean(recipe.isPrivate),
       tag: normalizeTags(Array.isArray(recipe.tag) ? recipe.tag : []),
     }));
 
@@ -40,11 +77,15 @@ export async function GET(request: NextRequest) {
     const normalizedSearch = normalizeText(search.trim());
 
     const matchingRecipes = normalizedRecipes.filter((recipe) => {
+      const filterableText = [recipe.name, ...(recipe.tag || [])]
+        .filter(Boolean)
+        .join(" ");
+
       const searchableText = normalizeText(
         [
           recipe.name,
-          recipe.description,
           ...(recipe.tag || []),
+          recipe.description,
           recipe.authorName,
           recipe.sourceName,
           recipe.ingredients,
@@ -53,11 +94,23 @@ export async function GET(request: NextRequest) {
           .join(" "),
       );
 
+      const prepMinutes = parseDurationToMinutes(recipe.prepTime);
+      const cookingMinutes = parseDurationToMinutes(recipe.cookingTime);
+      const totalMinutes =
+        prepMinutes !== null && cookingMinutes !== null
+          ? prepMinutes + cookingMinutes
+          : (prepMinutes ?? cookingMinutes);
+
       const matchesFilter =
         activeFilter.key === "all" ||
-        activeFilter.keywords.some((keyword) =>
-          searchableText.includes(normalizeText(keyword)),
-        );
+        (activeFilter.key === "snabbt"
+          ? (totalMinutes !== null && totalMinutes <= 30) ||
+            activeFilter.keywords.some((keyword) =>
+              matchesNormalizedKeyword(filterableText, keyword),
+            )
+          : activeFilter.keywords.some((keyword) =>
+              matchesNormalizedKeyword(filterableText, keyword),
+            ));
 
       if (!matchesFilter) {
         return false;
@@ -114,6 +167,7 @@ export async function POST(request: NextRequest) {
     const {
       name,
       description,
+      isPrivate,
       tag,
       cookingTime,
       imageSrc,
@@ -130,6 +184,7 @@ export async function POST(request: NextRequest) {
     const newRecipe = new Recipe({
       name,
       description,
+      isPrivate: Boolean(isPrivate),
       tag: normalizedTags,
       cookingTime,
       imageSrc,
@@ -162,13 +217,25 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     await connectDB();
+    const session = getSessionFromCookies(await cookies());
     const body = await request.json();
     const { id, ...updateFields } = body;
+
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: "Please sign in to update a recipe" },
+        { status: 401 },
+      );
+    }
 
     if ("tag" in updateFields) {
       updateFields.tag = normalizeTags(
         Array.isArray(updateFields.tag) ? updateFields.tag : [],
       );
+    }
+
+    if ("isPrivate" in updateFields) {
+      updateFields.isPrivate = Boolean(updateFields.isPrivate);
     }
 
     if (!id) {
@@ -178,13 +245,23 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const updatedRecipe = await Recipe.findByIdAndUpdate(id, updateFields, {
-      new: true,
-    });
+    const updatedRecipe = await Recipe.findOneAndUpdate(
+      {
+        _id: id,
+        authorId: session.userId,
+      },
+      updateFields,
+      {
+        new: true,
+      },
+    );
 
     if (!updatedRecipe) {
       return NextResponse.json(
-        { success: false, error: "Recipe not found" },
+        {
+          success: false,
+          error: "Recipe not found or you do not have permission to edit it",
+        },
         { status: 404 },
       );
     }

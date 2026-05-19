@@ -6,6 +6,7 @@ interface OverviewRecipeProps {
   id: string;
   name: string;
   description: string;
+  isPrivate?: boolean;
   tag: string[];
   cookingTime: string;
   imageSrc: string;
@@ -18,6 +19,7 @@ const OverviewRecipe = ({
   id,
   name,
   description,
+  isPrivate = false,
   tag,
   cookingTime,
   imageSrc,
@@ -45,6 +47,12 @@ const OverviewRecipe = ({
         </div>
 
         <div className="flex flex-1 flex-col p-4">
+          {isPrivate && (
+            <p className="pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-primaryaccent/55">
+              Private
+            </p>
+          )}
+
           <h2 className="text-lg font-semibold text-black! line-clamp-2 min-h-8 pb-2">
             {name}
           </h2>

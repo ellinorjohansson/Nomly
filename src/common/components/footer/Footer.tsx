@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 sm:flex-row sm:items-center">
         <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-end sm:gap-5">
           <h2 className="text-3xl font-logo font-bold">Nomly</h2>
-          <p className="text-sm text-secondaryaccent">
+          <p className="text-sm text-secondaryaccent mb-1.5">
             &copy; {new Date().getFullYear()} {"All rights reserved"}
           </p>
         </div>

@@ -25,11 +25,16 @@ export default async function RecipeDetailPage({
     notFound();
   }
 
+  if (recipe.isPrivate && session?.userId !== recipe.authorId) {
+    notFound();
+  }
+
   const normalizedRecipe = {
     _id: String(recipe._id),
     name: recipe.name || "",
     description: recipe.description || "",
     imageSrc: recipe.imageSrc || "",
+    isPrivate: Boolean(recipe.isPrivate),
     ingredients: recipe.ingredients || "",
     instructions: recipe.instructions || "",
     prepTime: recipe.prepTime || "",
