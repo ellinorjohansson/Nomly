@@ -10,12 +10,6 @@ export default function Home() {
         "Clip recipes from any website with a single click. We handle all the messy formatting.",
     },
     {
-      icon: "folder_open",
-      title: "Organize",
-      description:
-        "Create collections, add tags, and rate your favorites. Keep everything tidy.",
-    },
-    {
       icon: "restaurant_menu",
       title: "Cook",
       description:
@@ -88,7 +82,7 @@ export default function Home() {
           <h2 className="mb-12 text-center text-3xl font-serif font-bold text-primaryaccent sm:mb-16 sm:text-4xl">
             How It Works
           </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8">
             {steps.map((step, i) => (
               <div key={i} className="text-center">
                 <div className="text-5xl mb-4 flex justify-center">
