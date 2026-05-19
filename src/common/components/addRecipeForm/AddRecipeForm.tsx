@@ -89,7 +89,7 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
               <span className="text-amber-600">Nomly</span> way
             </h1>
             <p className="mb-2 text-primaryaccent/60">
-              Fill in your recipe details and see the preview on the right.
+              Fill in your recipe details and see the preview.
             </p>
             <p className="mb-8 text-sm text-primaryaccent/70">
               Publishing as{" "}
