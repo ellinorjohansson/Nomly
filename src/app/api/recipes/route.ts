@@ -192,8 +192,16 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     await connectDB();
+    const session = getSessionFromCookies(await cookies());
     const body = await request.json();
     const { id, ...updateFields } = body;
+
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: "Please sign in to update a recipe" },
+        { status: 401 },
+      );
+    }
 
     if ("tag" in updateFields) {
       updateFields.tag = normalizeTags(
@@ -212,13 +220,23 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const updatedRecipe = await Recipe.findByIdAndUpdate(id, updateFields, {
-      new: true,
-    });
+    const updatedRecipe = await Recipe.findOneAndUpdate(
+      {
+        _id: id,
+        authorId: session.userId,
+      },
+      updateFields,
+      {
+        new: true,
+      },
+    );
 
     if (!updatedRecipe) {
       return NextResponse.json(
-        { success: false, error: "Recipe not found" },
+        {
+          success: false,
+          error: "Recipe not found or you do not have permission to edit it",
+        },
         { status: 404 },
       );
     }

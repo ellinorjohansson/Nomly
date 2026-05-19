@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   formatDuration,
@@ -9,6 +9,8 @@ import {
   parseDurationToMinutes,
 } from "../../../lib/duration";
 import type { IRecipe } from "@/models/Recipe";
+import { normalizeTags } from "@/lib/tags";
+import EditRecipeModal, { type RecipeFormData } from "./EditRecipeModal";
 
 interface DetailRecipeProps {
   recipe: IRecipe;
@@ -18,32 +20,176 @@ interface DetailRecipeProps {
 const formatTag = (tag: string) =>
   tag ? tag.charAt(0).toUpperCase() + tag.slice(1) : "";
 
+const createFormData = (recipe: IRecipe): RecipeFormData => ({
+  name: recipe.name || "",
+  description: recipe.description || "",
+  ingredients: recipe.ingredients || "",
+  instructions: recipe.instructions || "",
+  prepTime: recipe.prepTime || "",
+  cookingTime: recipe.cookingTime || "",
+  servings: recipe.servings || "",
+  imageSrc: recipe.imageSrc || "",
+  sourceUrl: recipe.sourceUrl || "",
+  sourceName: recipe.sourceName || "",
+  link: recipe.link || "",
+  isPrivate: Boolean(recipe.isPrivate),
+  tag: normalizeTags(recipe.tag || []),
+});
+
 const DetailRecipe = ({
   recipe,
   canDelete = Boolean(recipe._id),
 }: DetailRecipeProps) => {
   const router = useRouter();
-  const tags = recipe.tag || [];
-  const sourceLabel = recipe.sourceName || recipe.sourceUrl || recipe.link;
-  const sourceHref = recipe.sourceUrl || recipe.link;
-  const ingredientsList = (recipe.ingredients || "")
-    .split("\n")
-    .filter((item) => item.trim() !== "");
-  const instructionsList = (recipe.instructions || "")
-    .split("\n")
-    .filter((item) => item.trim() !== "");
-  const prepMinutes = parseDurationToMinutes(recipe.prepTime);
-  const cookingMinutes = parseDurationToMinutes(recipe.cookingTime);
-  const totalMinutes =
-    prepMinutes !== null && cookingMinutes !== null
-      ? prepMinutes + cookingMinutes
-      : (prepMinutes ?? cookingMinutes);
+  const [recipeState, setRecipeState] = useState<IRecipe>({
+    ...recipe,
+    isPrivate: Boolean(recipe.isPrivate),
+    tag: normalizeTags(recipe.tag || []),
+  });
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState<RecipeFormData>(() =>
+    createFormData(recipe),
+  );
+  const [tagsInput, setTagsInput] = useState(() =>
+    normalizeTags(recipe.tag || []).join(", "),
+  );
+  const [editError, setEditError] = useState<string | null>(null);
+  const [showSaveToast, setShowSaveToast] = useState(false);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const normalizedRecipe = {
+      ...recipe,
+      isPrivate: Boolean(recipe.isPrivate),
+      tag: normalizeTags(recipe.tag || []),
+    };
+
+    setRecipeState(normalizedRecipe);
+    setEditFormData(createFormData(normalizedRecipe));
+    setTagsInput(normalizedRecipe.tag.join(", "));
+  }, [recipe]);
+
+  useEffect(() => {
+    if (!showSaveToast) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setShowSaveToast(false);
+    }, 2500);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [showSaveToast]);
+
+  const tags = recipeState.tag || [];
+  const sourceLabel =
+    recipeState.sourceName || recipeState.sourceUrl || recipeState.link;
+  const sourceHref = recipeState.sourceUrl || recipeState.link;
+  const ingredientsList = (recipeState.ingredients || "")
+    .split("\n")
+    .filter((item) => item.trim() !== "");
+  const instructionsList = (recipeState.instructions || "")
+    .split("\n")
+    .filter((item) => item.trim() !== "");
+  const prepMinutes = parseDurationToMinutes(recipeState.prepTime);
+  const cookingMinutes = parseDurationToMinutes(recipeState.cookingTime);
+  const totalMinutes =
+    prepMinutes !== null && cookingMinutes !== null
+      ? prepMinutes + cookingMinutes
+      : (prepMinutes ?? cookingMinutes);
+
+  const handleEditChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = event.target;
+    setEditFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditTagsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    const tag = normalizeTags(value.split(","));
+    setTagsInput(value);
+    setEditFormData((prev) => ({ ...prev, tag }));
+  };
+
+  const handleVisibilityChange = (isPrivate: boolean) => {
+    setEditFormData((prev) => ({ ...prev, isPrivate }));
+  };
+
+  const handleOpenEditModal = () => {
+    setEditError(null);
+    setEditFormData(createFormData(recipeState));
+    setTagsInput(normalizeTags(recipeState.tag || []).join(", "));
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    if (isSavingEdit) {
+      return;
+    }
+
+    setIsEditModalOpen(false);
+    setEditError(null);
+  };
+
+  const handleSaveEdit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!recipeState._id || isSavingEdit) {
+      return;
+    }
+
+    setIsSavingEdit(true);
+    setEditError(null);
+
+    try {
+      const response = await fetch("/api/recipes", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: recipeState._id,
+          ...editFormData,
+          tag: normalizeTags(editFormData.tag),
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok || !payload?.success) {
+        throw new Error(payload?.error || "Failed to update recipe");
+      }
+
+      const updatedRecipe: IRecipe = {
+        ...recipeState,
+        ...editFormData,
+        isPrivate: Boolean(editFormData.isPrivate),
+        tag: normalizeTags(editFormData.tag),
+      };
+
+      setRecipeState(updatedRecipe);
+      setEditFormData(createFormData(updatedRecipe));
+      setTagsInput(updatedRecipe.tag?.join(", ") || "");
+      setIsEditModalOpen(false);
+      setShowSaveToast(true);
+      router.refresh();
+    } catch (error) {
+      setEditError(
+        error instanceof Error ? error.message : "Failed to update recipe",
+      );
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
   const handleDeleteRecipe = async () => {
-    if (!recipe._id || isDeleting) {
+    if (!recipeState._id || isDeleting) {
       return;
     }
 
@@ -52,7 +198,7 @@ const DetailRecipe = ({
 
     try {
       const response = await fetch(
-        `/api/recipes?id=${encodeURIComponent(recipe._id)}`,
+        `/api/recipes?id=${encodeURIComponent(recipeState._id)}`,
         {
           method: "DELETE",
         },
@@ -77,12 +223,25 @@ const DetailRecipe = ({
   };
 
   return (
-    <article className="mx-auto max-w-4xl text-text mb-10">
+    <article className="mx-auto mb-10 max-w-4xl text-text">
+      {showSaveToast && (
+        <div className="pointer-events-none fixed right-4 top-20 z-60 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-xl">
+          <p className="text-sm font-medium text-primaryaccent">
+            Your recipe changes have been saved.
+          </p>
+        </div>
+      )}
+
+      {recipeState.isPrivate && (
+        <span className="inline-flex items-center mb-5 mt-5 rounded-full border border-primaryaccent/15 bg-secondary px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primaryaccent">
+          Private
+        </span>
+      )}
       <div className="mb-8 aspect-video overflow-hidden rounded-[1.75rem] bg-linear-to-br from-secondary to-primary shadow-xl">
-        {recipe.imageSrc ? (
+        {recipeState.imageSrc ? (
           <img
-            src={recipe.imageSrc}
-            alt={recipe.name}
+            src={recipeState.imageSrc}
+            alt={recipeState.name}
             className="h-full w-full object-cover"
             loading="lazy"
           />
@@ -110,28 +269,22 @@ const DetailRecipe = ({
 
       <div className="mb-3 flex flex-wrap items-center gap-3">
         <h1 className="text-4xl font-bold text-primaryaccent md:text-5xl">
-          {recipe.name}
+          {recipeState.name}
         </h1>
-
-        {recipe.isPrivate && (
-          <span className="inline-flex items-center rounded-full border border-primaryaccent/15 bg-secondary px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primaryaccent">
-            Private
-          </span>
-        )}
       </div>
 
-      {recipe.authorName && (
+      {recipeState.authorName && (
         <p className="mb-4 text-sm text-primaryaccent/60">
           Added by{" "}
           <span className="font-semibold text-primaryaccent">
-            {recipe.authorName}
+            {recipeState.authorName}
           </span>
         </p>
       )}
 
-      {recipe.description && (
+      {recipeState.description && (
         <p className="mb-6 max-w-3xl text-lg leading-relaxed text-primaryaccent/75">
-          {recipe.description}
+          {recipeState.description}
         </p>
       )}
 
@@ -151,15 +304,15 @@ const DetailRecipe = ({
               </span>
             </a>
           ) : (
-            <span className=" text-primaryaccent">{sourceLabel}</span>
+            <span className="text-primaryaccent">{sourceLabel}</span>
           )}
         </p>
       )}
 
       {(totalMinutes !== null ||
-        recipe.prepTime ||
-        recipe.cookingTime ||
-        recipe.servings) && (
+        recipeState.prepTime ||
+        recipeState.cookingTime ||
+        recipeState.servings) && (
         <div className="mb-8 flex flex-wrap gap-3">
           {totalMinutes !== null && (
             <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
@@ -177,7 +330,7 @@ const DetailRecipe = ({
             </div>
           )}
 
-          {recipe.prepTime && (
+          {recipeState.prepTime && (
             <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
               <div className="rounded-xl bg-primaryaccent/10 p-2 text-primaryaccent">
                 <span className="material-symbols-outlined text-lg">
@@ -187,13 +340,13 @@ const DetailRecipe = ({
               <div>
                 <div className="text-xs text-primaryaccent/55">Prep</div>
                 <div className="font-semibold text-primaryaccent">
-                  {formatDuration(recipe.prepTime)}
+                  {formatDuration(recipeState.prepTime)}
                 </div>
               </div>
             </div>
           )}
 
-          {recipe.cookingTime && (
+          {recipeState.cookingTime && (
             <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
               <div className="rounded-xl bg-secondaryaccent/20 p-2 text-primaryaccent">
                 <span className="material-symbols-outlined text-lg">
@@ -203,13 +356,13 @@ const DetailRecipe = ({
               <div>
                 <div className="text-xs text-primaryaccent/55">Cook</div>
                 <div className="font-semibold text-primaryaccent">
-                  {formatDuration(recipe.cookingTime)}
+                  {formatDuration(recipeState.cookingTime)}
                 </div>
               </div>
             </div>
           )}
 
-          {recipe.servings && (
+          {recipeState.servings && (
             <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
               <div className="rounded-xl bg-primaryaccent/10 p-2 text-primaryaccent">
                 <span className="material-symbols-outlined text-lg">group</span>
@@ -217,7 +370,7 @@ const DetailRecipe = ({
               <div>
                 <div className="text-xs text-primaryaccent/55">Servings</div>
                 <div className="font-semibold text-primaryaccent">
-                  {recipe.servings}
+                  {recipeState.servings}
                 </div>
               </div>
             </div>
@@ -277,21 +430,63 @@ const DetailRecipe = ({
         )}
       </div>
 
-      {recipe._id && canDelete && (
-        <div className="mt-30 flex justify-end">
-          <button
-            type="button"
-            onClick={() => {
-              setDeleteError(null);
-              setIsDeleteModalOpen(true);
-            }}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-error/20 px-4 py-2 text-sm font-semibold transition hover:border-error/40 hover:bg-error/5"
-          >
-            <span className="material-symbols-outlined text-base!">delete</span>
-            Delete recipe
-          </button>
+      {recipeState._id && canDelete && (
+        <div className="mt-30 rounded-[1.75rem] border border-primaryaccent/10 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primaryaccent/50">
+                Your recipe
+              </p>
+              <h2 className="mt-1 text-xl font-bold text-primaryaccent">
+                Edit details or switch visibility
+              </h2>
+              <p className="mt-1 text-sm text-primaryaccent/65">
+                Update the recipe whenever you want, and choose whether it is
+                private or public.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={handleOpenEditModal}
+                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-primaryaccent px-4 py-2 text-sm font-semibold text-white transition hover:bg-primaryaccent/90"
+              >
+                <span className="material-symbols-outlined text-base">
+                  edit
+                </span>
+                Edit recipe
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDeleteError(null);
+                  setIsDeleteModalOpen(true);
+                }}
+                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-error/20 px-4 py-2 text-sm font-semibold transition hover:border-error/40 hover:bg-error/5"
+              >
+                <span className="material-symbols-outlined text-base!">
+                  delete
+                </span>
+                Delete recipe
+              </button>
+            </div>
+          </div>
         </div>
       )}
+
+      <EditRecipeModal
+        isOpen={isEditModalOpen}
+        formData={editFormData}
+        tagsInput={tagsInput}
+        editError={editError}
+        isSaving={isSavingEdit}
+        onClose={handleCloseEditModal}
+        onSubmit={handleSaveEdit}
+        onChange={handleEditChange}
+        onTagsChange={handleEditTagsChange}
+        onVisibilityChange={handleVisibilityChange}
+      />
 
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-text/45 px-4 py-6">
@@ -307,7 +502,7 @@ const DetailRecipe = ({
                 <p className="text-sm leading-relaxed text-primaryaccent/70">
                   This action permanently removes{" "}
                   <span className="font-semibold text-primaryaccent">
-                    {recipe.name}
+                    {recipeState.name}
                   </span>{" "}
                   from your recipe list. This cannot be undone.
                 </p>
