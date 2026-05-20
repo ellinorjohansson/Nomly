@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import DetailRecipe from "@/common/components/detailRecipe/DetailRecipe";
 import { getSessionFromCookies } from "@/lib/auth";
 import connectDB from "@/lib/db";
+import { normalizeRecipeType } from "@/lib/recipeType";
 import Recipe from "@/models/Recipe";
 
 interface RecipeDetailPageProps {
@@ -34,6 +35,7 @@ export default async function RecipeDetailPage({
     name: recipe.name || "",
     description: recipe.description || "",
     imageSrc: recipe.imageSrc || "",
+    recipeType: normalizeRecipeType(recipe.recipeType),
     isPrivate: Boolean(recipe.isPrivate),
     ingredients: recipe.ingredients || "",
     instructions: recipe.instructions || "",
@@ -58,7 +60,7 @@ export default async function RecipeDetailPage({
           <span className="material-symbols-outlined text-base">
             arrow_back
           </span>
-          Back to recipes
+          Tillbaka till recept
         </Link>
 
         <DetailRecipe

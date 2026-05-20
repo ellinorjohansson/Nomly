@@ -3,6 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import DetailRecipe from "@/common/components/detailRecipe/DetailRecipe";
+import {
+  DEFAULT_RECIPE_TYPE,
+  RECIPE_TYPE_OPTIONS,
+  type RecipeType,
+} from "@/lib/recipeType";
 import { normalizeTags } from "@/lib/tags";
 
 interface AddRecipeFormProps {
@@ -14,6 +19,7 @@ const initialFormData = {
   description: "",
   ingredients: "",
   instructions: "",
+  recipeType: DEFAULT_RECIPE_TYPE,
   prepTime: "",
   cookingTime: "",
   servings: "",
@@ -50,6 +56,10 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
     setFormData((prev) => ({ ...prev, isPrivate }));
   };
 
+  const handleRecipeTypeChange = (recipeType: RecipeType) => {
+    setFormData((prev) => ({ ...prev, recipeType }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -69,15 +79,17 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
       const payload = await response.json().catch(() => null);
 
       if (!response.ok || !payload?.success) {
-        throw new Error(payload?.error || "Failed to save recipe");
+        throw new Error(payload?.error || "Det gick inte att spara receptet");
       }
 
       setFormData(initialFormData);
       setTagsInput("");
-      setSubmitSuccess("Recipe saved successfully.");
+      setSubmitSuccess("Receptet sparades.");
     } catch (error) {
       setSubmitError(
-        error instanceof Error ? error.message : "Failed to save recipe",
+        error instanceof Error
+          ? error.message
+          : "Det gick inte att spara receptet",
       );
     } finally {
       setIsSubmitting(false);
@@ -90,14 +102,14 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
           <div className="rounded-3xl bg-white p-5 shadow-lg sm:p-8">
             <h1 className="mb-2 max-w-sm text-3xl font-serif font-bold text-primaryaccent">
-              Paste your recipe, save it the{" "}
-              <span className="text-amber-600">Nomly</span> way
+              Klistra in ditt recept och spara det på{" "}
+              <span className="text-amber-600">Nomly</span>
             </h1>
             <p className="mb-2 text-primaryaccent/60">
-              Fill in your recipe details and see the preview.
+              Fyll i receptets uppgifter och se förhandsvisningen.
             </p>
             <p className="mb-8 text-sm text-primaryaccent/70">
-              Publishing as{" "}
+              Publicerar som{" "}
               <span className="font-semibold text-primaryaccent">
                 {authorName}
               </span>
@@ -106,14 +118,14 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                  Recipe Title <span className="text-error">*</span>
+                  Recepttitel <span className="text-error">*</span>
                 </label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="e.g. Chocolate Chip Cookies"
+                  placeholder="t.ex. Chokladcookies"
                   required
                   className="w-full rounded-xl border border-primaryaccent/20 bg-secondary px-4 py-3 text-primaryaccent placeholder:text-primaryaccent/40 focus:outline-none focus:ring-2 focus:ring-primaryaccent/30"
                 />
@@ -121,13 +133,13 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
 
               <div>
                 <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                  Description
+                  Beskrivning
                 </label>
                 <textarea
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
-                  placeholder="A brief description of your recipe"
+                  placeholder="En kort beskrivning av receptet"
                   rows={3}
                   className="w-full resize-none rounded-xl border border-primaryaccent/20 bg-secondary px-4 py-3 text-primaryaccent placeholder:text-primaryaccent/40 focus:outline-none focus:ring-2 focus:ring-primaryaccent/30"
                 />
@@ -135,14 +147,14 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
 
               <div>
                 <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                  Ingredients <span className="text-error">*</span> (one per
-                  line)
+                  Ingredienser <span className="text-error">*</span> (en per
+                  rad)
                 </label>
                 <textarea
                   name="ingredients"
                   value={formData.ingredients}
                   onChange={handleChange}
-                  placeholder="One ingredient per line"
+                  placeholder="En ingrediens per rad"
                   rows={5}
                   required
                   className="w-full resize-none rounded-xl border border-primaryaccent/20 bg-secondary px-4 py-3 font-mono text-sm text-primaryaccent placeholder:text-primaryaccent/40 focus:outline-none focus:ring-2 focus:ring-primaryaccent/30"
@@ -151,14 +163,14 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
 
               <div>
                 <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                  Instructions <span className="text-error">*</span> (one step
-                  per line)
+                  Instruktioner <span className="text-error">*</span> (ett steg
+                  per rad)
                 </label>
                 <textarea
                   name="instructions"
                   value={formData.instructions}
                   onChange={handleChange}
-                  placeholder="One step per line"
+                  placeholder="Ett steg per rad"
                   rows={6}
                   required
                   className="w-full resize-none rounded-xl border border-primaryaccent/20 bg-secondary px-4 py-3 font-mono text-sm text-primaryaccent placeholder:text-primaryaccent/40 focus:outline-none focus:ring-2 focus:ring-primaryaccent/30"
@@ -168,33 +180,33 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
                   <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                    Prep time
+                    Förberedelsetid
                   </label>
                   <input
                     type="text"
                     name="prepTime"
                     value={formData.prepTime}
                     onChange={handleChange}
-                    placeholder="e.g. 45m or 1h 15m"
+                    placeholder="t.ex. 45 min eller 1 h 15 min"
                     className="w-full rounded-xl border border-primaryaccent/20 bg-secondary px-4 py-3 text-primaryaccent placeholder:text-primaryaccent/40 focus:outline-none focus:ring-2 focus:ring-primaryaccent/30"
                   />
                 </div>
                 <div>
                   <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                    Cook time
+                    Tillagningstid
                   </label>
                   <input
                     type="text"
                     name="cookingTime"
                     value={formData.cookingTime}
                     onChange={handleChange}
-                    placeholder="e.g. 1h 30m"
+                    placeholder="t.ex. 1 h 30 min"
                     className="w-full rounded-xl border border-primaryaccent/20 bg-secondary px-4 py-3 text-primaryaccent placeholder:text-primaryaccent/40 focus:outline-none focus:ring-2 focus:ring-primaryaccent/30"
                   />
                 </div>
                 <div>
                   <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                    Servings
+                    Portioner
                   </label>
                   <input
                     type="text"
@@ -209,14 +221,14 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
 
               <div>
                 <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                  Image URL
+                  Bild-URL
                 </label>
                 <input
                   type="url"
                   name="imageSrc"
                   value={formData.imageSrc}
                   onChange={handleChange}
-                  placeholder="https://example.com/recipe-image.jpg"
+                  placeholder="https://example.com/receptbild.jpg"
                   className="w-full rounded-xl border border-primaryaccent/20 bg-secondary px-4 py-3 text-sm text-primaryaccent placeholder:text-primaryaccent/40 focus:outline-none focus:ring-2 focus:ring-primaryaccent/30"
                 />
               </div>
@@ -224,27 +236,27 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                    Source URL
+                    Käll-URL
                   </label>
                   <input
                     type="url"
                     name="sourceUrl"
                     value={formData.sourceUrl}
                     onChange={handleChange}
-                    placeholder="https://food-blog.com"
+                    placeholder="https://matblogg.se"
                     className="w-full rounded-xl border border-primaryaccent/20 bg-secondary px-4 py-3 text-sm text-primaryaccent placeholder:text-primaryaccent/40 focus:outline-none focus:ring-2 focus:ring-primaryaccent/30"
                   />
                 </div>
                 <div>
                   <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                    Source Name
+                    Källnamn
                   </label>
                   <input
                     type="text"
                     name="sourceName"
                     value={formData.sourceName}
                     onChange={handleChange}
-                    placeholder="e.g. Food Blog"
+                    placeholder="t.ex. Matbloggen"
                     className="w-full rounded-xl border border-primaryaccent/20 bg-secondary px-4 py-3 text-primaryaccent placeholder:text-primaryaccent/40 focus:outline-none focus:ring-2 focus:ring-primaryaccent/30"
                   />
                 </div>
@@ -252,20 +264,50 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
 
               <div>
                 <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                  Tags (comma separated)
+                  Taggar (kommaseparerade)
                 </label>
                 <input
                   type="text"
                   value={tagsInput}
                   onChange={handleTagsChange}
-                  placeholder="dessert, quick, easy"
+                  placeholder="dessert, snabb, enkel"
                   className="w-full rounded-xl border border-primaryaccent/20 bg-secondary px-4 py-3 text-primaryaccent placeholder:text-primaryaccent/40 focus:outline-none focus:ring-2 focus:ring-primaryaccent/30"
                 />
               </div>
 
               <div>
                 <p className="mb-3 block text-sm font-semibold text-primaryaccent">
-                  Visibility
+                  Typ av rätt
+                </p>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {RECIPE_TYPE_OPTIONS.map((option) => (
+                    <label
+                      key={option.value}
+                      className="flex cursor-pointer items-start gap-3 rounded-2xl border border-primaryaccent/15 bg-secondary px-4 py-4 text-left transition hover:border-primaryaccent/30"
+                    >
+                      <input
+                        type="radio"
+                        name="recipeType"
+                        checked={formData.recipeType === option.value}
+                        onChange={() => handleRecipeTypeChange(option.value)}
+                        className="mt-1 h-4 w-4 border-primaryaccent text-primaryaccent focus:ring-primaryaccent/30"
+                      />
+                      <span>
+                        <span className="block text-sm font-semibold text-primaryaccent">
+                          {option.label}
+                        </span>
+                        <span className="block text-sm text-primaryaccent/65">
+                          {option.description}
+                        </span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-3 block text-sm font-semibold text-primaryaccent">
+                  Synlighet
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-primaryaccent/15 bg-secondary px-4 py-4 text-left transition hover:border-primaryaccent/30">
@@ -278,10 +320,10 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
                     />
                     <span>
                       <span className="block text-sm font-semibold text-primaryaccent">
-                        Public
+                        Offentlig
                       </span>
                       <span className="block text-sm text-primaryaccent/65">
-                        Everyone can see this recipe.
+                        Alla kan se det här receptet.
                       </span>
                     </span>
                   </label>
@@ -296,10 +338,10 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
                     />
                     <span>
                       <span className="block text-sm font-semibold text-primaryaccent">
-                        Private
+                        Privat
                       </span>
                       <span className="block text-sm text-primaryaccent/65">
-                        Only you can see this recipe.
+                        Bara du kan se det här receptet.
                       </span>
                     </span>
                   </label>
@@ -326,7 +368,7 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
                 <span className="material-symbols-outlined text-xl">
                   {isSubmitting ? "progress_activity" : "check_circle"}
                 </span>
-                {isSubmitting ? "Saving..." : "Save to Nomly"}
+                {isSubmitting ? "Sparar..." : "Spara till Nomly"}
               </button>
             </form>
 
@@ -334,13 +376,13 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
               href="/recipes"
               className="mt-6 inline-block text-primaryaccent/60 transition hover:text-primaryaccent"
             >
-              ← Back to recipes
+              ← Tillbaka till recept
             </Link>
           </div>
 
           <div className="flex flex-col">
             <h2 className="mb-4 text-2xl font-serif font-bold text-primaryaccent">
-              Live Preview
+              Förhandsvisning
             </h2>
             <div className="flex-1">
               <DetailRecipe

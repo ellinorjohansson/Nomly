@@ -10,11 +10,11 @@ export default function RecipesPage() {
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-serif font-bold text-primaryaccent">
-              All recipes
+              Alla recept
             </h1>
             <p className="text-secondaryaccent">
-              All the best finds from you and your friends, in one delicious
-              place.
+              Alla de bästa recepten från dig och dina vänner, samlade på ett
+              och samma ställe.
             </p>
           </div>
           <Link
@@ -22,7 +22,7 @@ export default function RecipesPage() {
             className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-primaryaccent px-4 py-2 font-medium text-primary sm:w-auto"
           >
             <span className="material-symbols-outlined">add</span>
-            Add recipe
+            Lägg till recept
           </Link>
         </div>
         <ShowRecipes />

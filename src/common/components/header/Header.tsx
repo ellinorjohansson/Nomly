@@ -99,7 +99,7 @@ const Header = () => {
       {showLogoutToast && (
         <div className="pointer-events-none fixed right-4 top-20 z-60 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-xl">
           <p className="text-sm font-medium text-primaryaccent">
-            You have been logged out.
+            Du har loggats ut.
           </p>
         </div>
       )}
@@ -116,7 +116,7 @@ const Header = () => {
             href="/recipes"
             className="text-secondaryaccent hover:text-primaryaccent transition"
           >
-            Recipes
+            Recept
           </Link>
           {!isSessionLoading && (
             <div className="flex items-center gap-3">
@@ -125,8 +125,8 @@ const Header = () => {
                   type="button"
                   onClick={handleLogout}
                   disabled={isLoggingOut}
-                  aria-label="Log out"
-                  title="Log out"
+                  aria-label="Logga ut"
+                  title="Logga ut"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-primaryaccent/15 text-primaryaccent transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   <span className="material-symbols-outlined text-[20px]">
@@ -139,13 +139,13 @@ const Header = () => {
                     href="/login?next=%2Frecipes"
                     className="px-4 py-2 text-secondaryaccent hover:text-primaryaccent transition"
                   >
-                    Sign In
+                    Logga in
                   </Link>
                   <Link
                     href="/signup?next=%2Frecipes"
                     className="px-4 py-2 bg-primaryaccent text-primary rounded-lg hover:opacity-90 transition"
                   >
-                    Get Started
+                    Kom igång
                   </Link>
                 </>
               )}
@@ -157,7 +157,7 @@ const Header = () => {
         <button
           onClick={() => setIsNavOpen(!isNavOpen)}
           className="md:hidden text-primaryaccent"
-          aria-label="Toggle menu"
+          aria-label="Växla meny"
         >
           <svg
             className="w-6 h-6"
@@ -193,14 +193,14 @@ const Header = () => {
               className="text-secondaryaccent hover:text-primaryaccent transition"
               onClick={() => setIsNavOpen(false)}
             >
-              Home
+              Hem
             </Link>
             <Link
               href="/recipes"
               className="text-secondaryaccent hover:text-primaryaccent transition"
               onClick={() => setIsNavOpen(false)}
             >
-              Recipes
+              Recept
             </Link>
             {!isSessionLoading &&
               (sessionUser ? (
@@ -210,7 +210,7 @@ const Header = () => {
                   disabled={isLoggingOut}
                   className="flex items-center text-left text-secondaryaccent transition hover:text-primaryaccent disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  Log out
+                  Logga ut
                 </button>
               ) : (
                 <>
@@ -219,14 +219,14 @@ const Header = () => {
                     className="text-secondaryaccent hover:text-primaryaccent transition"
                     onClick={() => setIsNavOpen(false)}
                   >
-                    Login
+                    Logga in
                   </Link>
                   <Link
                     href="/signup?next=%2Frecipes"
                     className="px-4 py-2 bg-primaryaccent text-primary rounded-lg hover:opacity-90 transition text-center"
                     onClick={() => setIsNavOpen(false)}
                   >
-                    Sign Up
+                    Skapa konto
                   </Link>
                 </>
               ))}

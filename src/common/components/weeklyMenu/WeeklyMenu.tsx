@@ -58,14 +58,14 @@ const WeeklyMenu = () => {
       <div className="mx-auto max-w-6xl">
         <div className="mb-10 max-w-2xl">
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-secondaryaccent">
-            Weekly menu
+            Veckomeny
           </p>
           <h2 className="text-3xl font-serif font-bold text-primaryaccent sm:text-4xl">
-            Three recipes for this week
+            Tre recept för veckan
           </h2>
           <p className="mt-3 text-base leading-relaxed text-secondaryaccent">
-            Nomly picks three different public recipes each week so you always
-            have a simple menu plan ready to go.
+            Nomly väljer tre olika offentliga recept varje vecka så att du
+            alltid har en enkel menyplan redo.
           </p>
         </div>
 

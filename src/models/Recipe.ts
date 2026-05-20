@@ -1,10 +1,16 @@
 import mongoose, { Schema, Model } from "mongoose";
+import {
+  DEFAULT_RECIPE_TYPE,
+  RECIPE_TYPE_OPTIONS,
+  type RecipeType,
+} from "@/lib/recipeType";
 
 export interface IRecipe {
   _id?: string;
   imageSrc: string;
   name: string;
   description: string;
+  recipeType?: RecipeType;
   isPrivate?: boolean;
   tag: string[];
   cookingTime: string;
@@ -28,6 +34,11 @@ const RecipeSchema = new Schema<IRecipe>({
   },
   description: {
     type: String,
+  },
+  recipeType: {
+    type: String,
+    enum: RECIPE_TYPE_OPTIONS.map((option) => option.value),
+    default: DEFAULT_RECIPE_TYPE,
   },
   isPrivate: {
     type: Boolean,

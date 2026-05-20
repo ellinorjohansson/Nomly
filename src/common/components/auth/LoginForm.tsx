@@ -29,7 +29,7 @@ export default function LoginForm() {
       const payload = await response.json().catch(() => null);
 
       if (!response.ok || !payload?.success) {
-        throw new Error(payload?.error || "Failed to sign in");
+        throw new Error(payload?.error || "Det gick inte att logga in");
       }
 
       router.push(nextPath);
@@ -38,7 +38,7 @@ export default function LoginForm() {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "Failed to sign in",
+          : "Det gick inte att logga in",
       );
     } finally {
       setIsSubmitting(false);
@@ -49,15 +49,15 @@ export default function LoginForm() {
     <main className="min-h-screen bg-primary px-4 py-16">
       <div className="max-w-md mx-auto bg-secondary rounded-xl p-8">
         <h1 className="text-3xl font-serif font-bold text-primaryaccent mb-4">
-          Login
+          Logga in
         </h1>
         <p className="text-secondaryaccent mb-6">
-          Sign in to access your recipes.
+          Logga in för att komma åt dina recept.
         </p>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <input
             type="email"
-            placeholder="Email"
+            placeholder="E-post"
             value={formData.email}
             onChange={(event) =>
               setFormData((prev) => ({ ...prev, email: event.target.value }))
@@ -66,7 +66,7 @@ export default function LoginForm() {
           />
           <input
             type="password"
-            placeholder="Password"
+            placeholder="Lösenord"
             value={formData.password}
             onChange={(event) =>
               setFormData((prev) => ({ ...prev, password: event.target.value }))
@@ -79,16 +79,16 @@ export default function LoginForm() {
             disabled={isSubmitting}
             className="w-full rounded-lg bg-primaryaccent px-4 py-2 font-medium text-primary"
           >
-            {isSubmitting ? "Signing in..." : "Login"}
+            {isSubmitting ? "Loggar in..." : "Logga in"}
           </button>
         </form>
         <p className="mt-4 text-secondaryaccent">
-          No account?{" "}
+          Har du inget konto?{" "}
           <Link
             href={`/signup?next=${encodeURIComponent(nextPath)}`}
             className="underline"
           >
-            Create one
+            Skapa ett
           </Link>
         </p>
       </div>

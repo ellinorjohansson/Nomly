@@ -1,12 +1,14 @@
 "use client";
 
 import type { ChangeEventHandler, FormEventHandler } from "react";
+import { RECIPE_TYPE_OPTIONS, type RecipeType } from "@/lib/recipeType";
 
 export interface RecipeFormData {
   name: string;
   description: string;
   ingredients: string;
   instructions: string;
+  recipeType: RecipeType;
   prepTime: string;
   cookingTime: string;
   servings: string;
@@ -28,6 +30,7 @@ interface EditRecipeModalProps {
   onSubmit: FormEventHandler<HTMLFormElement>;
   onChange: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
   onTagsChange: ChangeEventHandler<HTMLInputElement>;
+  onRecipeTypeChange: (_recipeType: RecipeType) => void;
   onVisibilityChange: (_isPrivate: boolean) => void;
 }
 
@@ -41,6 +44,7 @@ const EditRecipeModal = ({
   onSubmit,
   onChange,
   onTagsChange,
+  onRecipeTypeChange,
   onVisibilityChange,
 }: EditRecipeModalProps) => {
   if (!isOpen) {
@@ -53,22 +57,22 @@ const EditRecipeModal = ({
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primaryaccent/55">
-              Edit recipe
+              Redigera recept
             </p>
             <h2 className="mt-1 text-2xl font-bold text-primaryaccent">
-              Update details and visibility
+              Uppdatera detaljer och synlighet
             </h2>
             <p className="mt-2 text-sm text-primaryaccent/65">
-              Keep the recipe fresh, and choose whether it stays just for you or
-              visible to everyone.
+              Håll receptet uppdaterat och välj om det bara ska vara synligt för
+              dig eller för alla.
             </p>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-10 w-10 items-center justify-center self-end rounded-full border border-primaryaccent/15 bg-white text-primaryaccent transition hover:bg-secondary sm:self-auto"
-            aria-label="Close edit recipe dialog"
+            className="inline-flex cursor-pointer h-10 w-10 items-center justify-center self-end rounded-full border border-primaryaccent/15 bg-white text-primaryaccent transition hover:bg-secondary sm:self-auto"
+            aria-label="Stäng dialogen för att redigera recept"
           >
             <span className="material-symbols-outlined text-base">close</span>
           </button>
@@ -79,7 +83,7 @@ const EditRecipeModal = ({
             <div className="space-y-5">
               <div>
                 <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                  Recipe title
+                  Recepttitel
                 </label>
                 <input
                   type="text"
@@ -93,7 +97,7 @@ const EditRecipeModal = ({
 
               <div>
                 <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                  Description
+                  Beskrivning
                 </label>
                 <textarea
                   name="description"
@@ -106,7 +110,7 @@ const EditRecipeModal = ({
 
               <div>
                 <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                  Ingredients
+                  Ingredienser
                 </label>
                 <textarea
                   name="ingredients"
@@ -120,7 +124,7 @@ const EditRecipeModal = ({
 
               <div>
                 <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                  Instructions
+                  Instruktioner
                 </label>
                 <textarea
                   name="instructions"
@@ -136,7 +140,37 @@ const EditRecipeModal = ({
             <div className="space-y-5">
               <div className="rounded-3xl border border-primaryaccent/10 bg-white p-4 shadow-sm">
                 <p className="mb-3 text-sm font-semibold text-primaryaccent">
-                  Visibility
+                  Typ av rätt
+                </p>
+                <div className="grid gap-3">
+                  {RECIPE_TYPE_OPTIONS.map((option) => (
+                    <label
+                      key={option.value}
+                      className="flex cursor-pointer items-start gap-3 rounded-2xl border border-primaryaccent/15 bg-secondary px-4 py-4 transition hover:border-primaryaccent/30"
+                    >
+                      <input
+                        type="radio"
+                        name="recipeType"
+                        checked={formData.recipeType === option.value}
+                        onChange={() => onRecipeTypeChange(option.value)}
+                        className="mt-1 h-4 w-4 border-primaryaccent text-primaryaccent focus:ring-primaryaccent/30"
+                      />
+                      <span>
+                        <span className="block text-sm font-semibold text-primaryaccent">
+                          {option.label}
+                        </span>
+                        <span className="block text-sm text-primaryaccent/65">
+                          {option.description}
+                        </span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-primaryaccent/10 bg-white p-4 shadow-sm">
+                <p className="mb-3 text-sm font-semibold text-primaryaccent">
+                  Synlighet
                 </p>
                 <div className="grid gap-3">
                   <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-primaryaccent/15 bg-secondary px-4 py-4 transition hover:border-primaryaccent/30">
@@ -149,10 +183,10 @@ const EditRecipeModal = ({
                     />
                     <span>
                       <span className="block text-sm font-semibold text-primaryaccent">
-                        Public
+                        Offentlig
                       </span>
                       <span className="block text-sm text-primaryaccent/65">
-                        Everyone can see this recipe.
+                        Alla kan se det här receptet.
                       </span>
                     </span>
                   </label>
@@ -167,10 +201,10 @@ const EditRecipeModal = ({
                     />
                     <span>
                       <span className="block text-sm font-semibold text-primaryaccent">
-                        Private
+                        Privat
                       </span>
                       <span className="block text-sm text-primaryaccent/65">
-                        Only you can see this recipe.
+                        Bara du kan se det här receptet.
                       </span>
                     </span>
                   </label>
@@ -180,7 +214,7 @@ const EditRecipeModal = ({
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
                   <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                    Prep time
+                    Förberedelsetid
                   </label>
                   <input
                     type="text"
@@ -193,7 +227,7 @@ const EditRecipeModal = ({
 
                 <div>
                   <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                    Cook time
+                    Tillagningstid
                   </label>
                   <input
                     type="text"
@@ -206,7 +240,7 @@ const EditRecipeModal = ({
 
                 <div>
                   <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                    Servings
+                    Portioner
                   </label>
                   <input
                     type="text"
@@ -220,7 +254,7 @@ const EditRecipeModal = ({
 
               <div>
                 <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                  Image URL
+                  Bild-URL
                 </label>
                 <input
                   type="url"
@@ -234,7 +268,7 @@ const EditRecipeModal = ({
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                    Source URL
+                    Käll-URL
                   </label>
                   <input
                     type="url"
@@ -246,7 +280,7 @@ const EditRecipeModal = ({
                 </div>
                 <div>
                   <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                    Source name
+                    Källnamn
                   </label>
                   <input
                     type="text"
@@ -260,7 +294,7 @@ const EditRecipeModal = ({
 
               <div>
                 <label className="mb-3 block text-sm font-semibold text-primaryaccent">
-                  Tags
+                  Taggar
                 </label>
                 <input
                   type="text"
@@ -284,7 +318,7 @@ const EditRecipeModal = ({
               onClick={onClose}
               className="cursor-pointer rounded-full border border-primaryaccent/15 bg-white px-4 py-2 text-sm font-semibold text-primaryaccent transition hover:bg-secondary"
             >
-              Cancel
+              Avbryt
             </button>
             <button
               type="submit"
@@ -296,14 +330,14 @@ const EditRecipeModal = ({
                   <span className="material-symbols-outlined animate-spin text-base">
                     progress_activity
                   </span>
-                  Saving changes...
+                  Sparar ändringar...
                 </>
               ) : (
                 <>
                   <span className="material-symbols-outlined text-base">
                     save
                   </span>
-                  Save changes
+                  Spara ändringar
                 </>
               )}
             </button>

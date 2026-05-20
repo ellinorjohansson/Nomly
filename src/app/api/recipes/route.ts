@@ -9,12 +9,14 @@ import {
   RECIPE_FILTERS,
 } from "@/lib/recipeFilters";
 import Recipe from "@/models/Recipe";
+import { normalizeRecipeType, type RecipeType } from "@/lib/recipeType";
 import { normalizeTags } from "@/lib/tags";
 
 const DEFAULT_LIMIT = 12;
 const MAX_LIMIT = 12;
 
 type VisibilityFilter = "all" | "public" | "private";
+type RecipeTypeFilter = "all" | RecipeType;
 
 const getVisibilityFilter = (value: string | null): VisibilityFilter => {
   if (value === "public" || value === "private") {
@@ -22,6 +24,14 @@ const getVisibilityFilter = (value: string | null): VisibilityFilter => {
   }
 
   return "all";
+};
+
+const getRecipeTypeFilter = (value: string | null): RecipeTypeFilter => {
+  if (value === "all" || value === null) {
+    return "all";
+  }
+
+  return normalizeRecipeType(value);
 };
 
 export async function GET(request: NextRequest) {
@@ -37,6 +47,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || "";
     const filter = searchParams.get("filter") || "all";
     const visibility = getVisibilityFilter(searchParams.get("visibility"));
+    const recipeType = getRecipeTypeFilter(searchParams.get("recipeType"));
     const addedByUser = searchParams.get("addedByUser") === "true";
 
     const currentPage = Number.isNaN(requestedPage)
@@ -77,6 +88,7 @@ export async function GET(request: NextRequest) {
     const recipes = await Recipe.find(recipeQuery).sort({ _id: -1 }).lean();
     const normalizedRecipes = recipes.map((recipe) => ({
       ...recipe,
+      recipeType: normalizeRecipeType(recipe.recipeType),
       isPrivate: Boolean(recipe.isPrivate),
       tag: normalizeTags(Array.isArray(recipe.tag) ? recipe.tag : []),
     }));
@@ -126,6 +138,10 @@ export async function GET(request: NextRequest) {
         return false;
       }
 
+      if (recipeType !== "all" && recipe.recipeType !== recipeType) {
+        return false;
+      }
+
       if (!normalizedSearch) {
         return true;
       }
@@ -153,9 +169,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching recipes:", error);
+    console.error("Fel vid hämtning av recept:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to fetch recipes" },
+      { success: false, error: "Det gick inte att hämta recept" },
       { status: 500 },
     );
   }
@@ -168,7 +184,7 @@ export async function POST(request: NextRequest) {
 
     if (!session) {
       return NextResponse.json(
-        { success: false, error: "Please sign in to add a recipe" },
+        { success: false, error: "Logga in för att lägga till ett recept" },
         { status: 401 },
       );
     }
@@ -177,6 +193,7 @@ export async function POST(request: NextRequest) {
     const {
       name,
       description,
+      recipeType,
       isPrivate,
       tag,
       cookingTime,
@@ -190,10 +207,12 @@ export async function POST(request: NextRequest) {
       sourceName,
     } = body;
     const normalizedTags = normalizeTags(Array.isArray(tag) ? tag : []);
+    const normalizedRecipeType = normalizeRecipeType(recipeType);
 
     const newRecipe = new Recipe({
       name,
       description,
+      recipeType: normalizedRecipeType,
       isPrivate: Boolean(isPrivate),
       tag: normalizedTags,
       cookingTime,
@@ -216,9 +235,9 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
-    console.error("Error creating recipe:", error);
+    console.error("Fel vid skapande av recept:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to create recipe" },
+      { success: false, error: "Det gick inte att skapa receptet" },
       { status: 500 },
     );
   }
@@ -233,7 +252,7 @@ export async function PUT(request: NextRequest) {
 
     if (!session) {
       return NextResponse.json(
-        { success: false, error: "Please sign in to update a recipe" },
+        { success: false, error: "Logga in för att uppdatera ett recept" },
         { status: 401 },
       );
     }
@@ -244,13 +263,17 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    if ("recipeType" in updateFields) {
+      updateFields.recipeType = normalizeRecipeType(updateFields.recipeType);
+    }
+
     if ("isPrivate" in updateFields) {
       updateFields.isPrivate = Boolean(updateFields.isPrivate);
     }
 
     if (!id) {
       return NextResponse.json(
-        { success: false, error: "ID is required" },
+        { success: false, error: "ID krävs" },
         { status: 400 },
       );
     }
@@ -270,7 +293,8 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "Recipe not found or you do not have permission to edit it",
+          error:
+            "Receptet hittades inte eller så har du inte behörighet att redigera det",
         },
         { status: 404 },
       );
@@ -278,9 +302,9 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: updatedRecipe });
   } catch (error) {
-    console.error("Error updating recipe:", error);
+    console.error("Fel vid uppdatering av recept:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to update recipe" },
+      { success: false, error: "Det gick inte att uppdatera receptet" },
       { status: 500 },
     );
   }
@@ -295,14 +319,14 @@ export async function DELETE(request: NextRequest) {
 
     if (!session) {
       return NextResponse.json(
-        { success: false, error: "Please sign in to delete a recipe" },
+        { success: false, error: "Logga in för att ta bort ett recept" },
         { status: 401 },
       );
     }
 
     if (!id) {
       return NextResponse.json(
-        { success: false, error: "ID is required" },
+        { success: false, error: "ID krävs" },
         { status: 400 },
       );
     }
@@ -316,7 +340,8 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "Recipe not found or you do not have permission to delete it",
+          error:
+            "Receptet hittades inte eller så har du inte behörighet att ta bort det",
         },
         { status: 404 },
       );
@@ -324,9 +349,9 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: deletedRecipe });
   } catch (error) {
-    console.error("Error deleting recipe:", error);
+    console.error("Fel vid borttagning av recept:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to delete recipe" },
+      { success: false, error: "Det gick inte att ta bort receptet" },
       { status: 500 },
     );
   }

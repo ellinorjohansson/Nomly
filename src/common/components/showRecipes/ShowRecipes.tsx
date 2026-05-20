@@ -3,17 +3,31 @@ import OverviewRecipe from "../overviewRecipe/OverviewRecipe";
 import { getRecipes } from "@/services/recipeService";
 import RecipeCardSkeleton from "@/common/modules/skeleton/RecipeCardSkeleton";
 import { IRecipe } from "@/models/Recipe";
+import {
+  normalizeRecipeType,
+  RECIPE_TYPE_OPTIONS,
+  type RecipeType,
+} from "@/lib/recipeType";
 import { normalizeTags } from "@/lib/tags";
 import { normalizeText, RECIPE_FILTERS } from "@/lib/recipeFilters";
 
 const RECIPES_PER_PAGE = 12;
 const VISIBILITY_FILTERS = [
-  { key: "all", label: "All" },
-  { key: "public", label: "Public" },
-  { key: "private", label: "Private" },
+  { key: "all", label: "Alla" },
+  { key: "public", label: "Offentliga" },
+  { key: "private", label: "Privata" },
+] as const;
+
+const DISH_TYPE_FILTERS = [
+  { key: "all", label: "Alla rätter" },
+  ...RECIPE_TYPE_OPTIONS.map((option) => ({
+    key: option.value,
+    label: option.label,
+  })),
 ] as const;
 
 type VisibilityFilter = (typeof VISIBILITY_FILTERS)[number]["key"];
+type DishTypeFilter = "all" | RecipeType;
 
 const ShowRecipes = () => {
   const [loading, setLoading] = useState(true);
@@ -25,6 +39,7 @@ const ShowRecipes = () => {
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [visibilityFilter, setVisibilityFilter] =
     useState<VisibilityFilter>("all");
+  const [dishTypeFilter, setDishTypeFilter] = useState<DishTypeFilter>("all");
   const [showOnlyUserRecipes, setShowOnlyUserRecipes] = useState(false);
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const normalizedSearchQuery = normalizeText(deferredSearchQuery.trim());
@@ -38,12 +53,14 @@ const ShowRecipes = () => {
         search: normalizedSearchQuery,
         filter: selectedFilter,
         visibility: visibilityFilter,
+        recipeType: dishTypeFilter,
         addedByUser: showOnlyUserRecipes,
       });
 
       setRecipes(
         data.recipes.map((recipe) => ({
           ...recipe,
+          recipeType: normalizeRecipeType(recipe.recipeType),
           isPrivate: Boolean(recipe.isPrivate),
           tag: normalizeTags(recipe.tag || []),
         })),
@@ -60,6 +77,7 @@ const ShowRecipes = () => {
     normalizedSearchQuery,
     selectedFilter,
     visibilityFilter,
+    dishTypeFilter,
     showOnlyUserRecipes,
   ]);
 
@@ -67,6 +85,7 @@ const ShowRecipes = () => {
     Boolean(normalizedSearchQuery) ||
     selectedFilter !== "all" ||
     visibilityFilter !== "all" ||
+    dishTypeFilter !== "all" ||
     showOnlyUserRecipes;
 
   return (
@@ -75,14 +94,14 @@ const ShowRecipes = () => {
         <div className="flex flex-col gap-4 sm:gap-5">
           <div className="max-w-2xl space-y-1">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondaryaccent">
-              Filter recipes
+              Filtrera recept
             </p>
             <h2 className="text-2xl font-serif font-bold text-primaryaccent">
-              Find something you want to cook
+              Hitta något du vill laga
             </h2>
             <p className="text-sm text-primaryaccent/70">
-              Search by recipe name, description, ingredient, or author, then
-              narrow it down with fixed categories that are easier to scan.
+              Sök på receptnamn, beskrivning, ingrediens eller författare och
+              filtrera sedan vidare med kategorier.
             </p>
           </div>
 
@@ -111,13 +130,14 @@ const ShowRecipes = () => {
                 setSearchQuery("");
                 setSelectedFilter("all");
                 setVisibilityFilter("all");
+                setDishTypeFilter("all");
                 setShowOnlyUserRecipes(false);
                 setCurrentPage(1);
               }}
               disabled={!hasActiveFilters}
               className="w-full rounded-2xl border border-primaryaccent/15 px-4 py-3 text-sm font-medium text-primaryaccent transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45 md:w-auto"
             >
-              Clear filters
+              Rensa filter
             </button>
           </div>
 
@@ -156,8 +176,34 @@ const ShowRecipes = () => {
                   : "bg-white text-primaryaccent hover:bg-white/80"
               }`}
             >
-              Added by you
+              Tillagda av dig
             </button>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {DISH_TYPE_FILTERS.map((filter) => {
+              const isActive = dishTypeFilter === filter.key;
+
+              return (
+                <button
+                  key={filter.key}
+                  type="button"
+                  onClick={() => {
+                    setDishTypeFilter(filter.key);
+                    setCurrentPage(1);
+                  }}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                    isActive
+                      ? filter.key === "all"
+                        ? "bg-primaryaccent text-primary shadow-sm"
+                        : "bg-secondaryaccent text-white shadow-sm"
+                      : "bg-white text-primaryaccent hover:bg-white/80"
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -189,7 +235,7 @@ const ShowRecipes = () => {
 
         {!loading && (
           <p className="mt-4 text-sm text-primaryaccent/60">
-            Showing {recipes.length} of {totalRecipes} recipes
+            Visar {recipes.length} av {totalRecipes} recept
           </p>
         )}
       </div>
@@ -220,16 +266,16 @@ const ShowRecipes = () => {
               search_off
             </span>
             <h3 className="mt-3 text-xl font-serif font-bold text-primaryaccent">
-              No recipes match this filter
+              Inga recept matchar filtret
             </h3>
             <p className="mx-auto mt-2 max-w-md text-sm text-primaryaccent/65">
-              Try a broader search term or switch back to Alla to see more
-              recipes.
+              Prova en bredare sokning eller byt tillbaka till Alla for att se
+              fler recept.
             </p>
           </div>
         ) : (
           <p className="col-span-full py-12 text-center text-secondaryaccent">
-            No recipes
+            Inga recept
           </p>
         )}
       </div>
@@ -237,7 +283,7 @@ const ShowRecipes = () => {
       {!loading && totalPages > 1 && (
         <div className="flex flex-col items-center justify-between gap-3 rounded-3xl border border-primaryaccent/10 bg-white/70 px-4 py-4 sm:flex-row">
           <p className="text-sm text-primaryaccent/65">
-            Page {currentPage} of {totalPages}
+            Sida {currentPage} av {totalPages}
           </p>
 
           <div className="flex w-full items-center gap-2 sm:w-auto">
@@ -245,9 +291,9 @@ const ShowRecipes = () => {
               type="button"
               onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
               disabled={currentPage === 1}
-              className="flex-1 rounded-2xl border border-primaryaccent/15 px-4 py-2 text-sm font-medium text-primaryaccent transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45 sm:flex-none"
+              className="flex-1 cursor-pointer rounded-2xl border border-primaryaccent/15 px-4 py-2 text-sm font-medium text-primaryaccent transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45 sm:flex-none"
             >
-              Previous
+              Forra
             </button>
             <button
               type="button"
@@ -255,9 +301,9 @@ const ShowRecipes = () => {
                 setCurrentPage((page) => Math.min(totalPages, page + 1))
               }
               disabled={currentPage === totalPages}
-              className="flex-1 rounded-2xl bg-primaryaccent px-4 py-2 text-sm font-medium text-primary transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45 sm:flex-none"
+              className="flex-1 cursor-pointer rounded-2xl bg-primaryaccent px-4 py-2 text-sm font-medium text-primary transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45 sm:flex-none"
             >
-              Next
+              Nasta
             </button>
           </div>
         </div>

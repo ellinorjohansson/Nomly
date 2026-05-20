@@ -33,7 +33,7 @@ export default function SignupForm() {
       const payload = await response.json().catch(() => null);
 
       if (!response.ok || !payload?.success) {
-        throw new Error(payload?.error || "Failed to create account");
+        throw new Error(payload?.error || "Det gick inte att skapa konto");
       }
 
       router.push(nextPath);
@@ -42,7 +42,7 @@ export default function SignupForm() {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "Failed to create account",
+          : "Det gick inte att skapa konto",
       );
     } finally {
       setIsSubmitting(false);
@@ -53,13 +53,13 @@ export default function SignupForm() {
     <main className="min-h-screen bg-primary px-4 py-16">
       <div className="max-w-md mx-auto bg-secondary rounded-xl p-8">
         <h1 className="text-3xl font-serif font-bold text-primaryaccent mb-4">
-          Sign Up
+          Skapa konto
         </h1>
-        <p className="text-secondaryaccent mb-6">Create your Nomly account.</p>
+        <p className="text-secondaryaccent mb-6">Skapa ditt Nomly-konto.</p>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <input
             type="text"
-            placeholder="Name"
+            placeholder="Namn"
             value={formData.name}
             onChange={(event) =>
               setFormData((prev) => ({ ...prev, name: event.target.value }))
@@ -68,7 +68,7 @@ export default function SignupForm() {
           />
           <input
             type="email"
-            placeholder="Email"
+            placeholder="E-post"
             value={formData.email}
             onChange={(event) =>
               setFormData((prev) => ({ ...prev, email: event.target.value }))
@@ -77,7 +77,7 @@ export default function SignupForm() {
           />
           <input
             type="password"
-            placeholder="Password"
+            placeholder="Lösenord"
             value={formData.password}
             onChange={(event) =>
               setFormData((prev) => ({ ...prev, password: event.target.value }))
@@ -90,16 +90,16 @@ export default function SignupForm() {
             disabled={isSubmitting}
             className="w-full rounded-lg bg-primaryaccent px-4 py-2 font-medium text-primary"
           >
-            {isSubmitting ? "Creating account..." : "Create account"}
+            {isSubmitting ? "Skapar konto..." : "Skapa konto"}
           </button>
         </form>
         <p className="mt-4 text-secondaryaccent">
-          Already have an account?{" "}
+          Har du redan ett konto?{" "}
           <Link
             href={`/login?next=${encodeURIComponent(nextPath)}`}
             className="underline"
           >
-            Login
+            Logga in
           </Link>
         </p>
       </div>
