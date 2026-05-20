@@ -21,7 +21,7 @@ const body = Manrope({
 export const metadata: Metadata = {
   title: "Nomly",
   description:
-    "Nomly is a recipe app where you can save, browse, and share your favorite recipes.",
+    "Nomly är en receptapp där du kan spara, bläddra bland och dela dina favoritrecept.",
   icons: {
     icon: "/images/nomly_favicon.avif",
   },
@@ -33,7 +33,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="sv">
       <head>
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,1,0&display=swap"

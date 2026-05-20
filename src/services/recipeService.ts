@@ -1,4 +1,5 @@
 import { IRecipe } from "@/models/Recipe";
+import { type RecipeType } from "@/lib/recipeType";
 
 interface GetRecipesOptions {
   page?: number;
@@ -6,6 +7,7 @@ interface GetRecipesOptions {
   search?: string;
   filter?: string;
   visibility?: "all" | "public" | "private";
+  recipeType?: "all" | RecipeType;
   addedByUser?: boolean;
 }
 
@@ -22,6 +24,7 @@ export async function getRecipes({
   search = "",
   filter = "all",
   visibility = "all",
+  recipeType = "all",
   addedByUser = false,
 }: GetRecipesOptions = {}): Promise<GetRecipesResponse> {
   try {
@@ -31,6 +34,7 @@ export async function getRecipes({
       search,
       filter,
       visibility,
+      recipeType,
       addedByUser: addedByUser ? "true" : "false",
     });
 
@@ -39,7 +43,7 @@ export async function getRecipes({
     });
 
     if (!res.ok) {
-      throw new Error("Failed to fetch recipes");
+      throw new Error("Det gick inte att hämta recept");
     }
 
     const data = await res.json();
@@ -50,7 +54,7 @@ export async function getRecipes({
       totalPages: data.pagination?.totalPages || 1,
     };
   } catch (error) {
-    console.error("Error fetching recipes:", error);
+    console.error("Fel vid hämtning av recept:", error);
     return {
       recipes: [],
       page: 1,

@@ -49,7 +49,7 @@ const OverviewRecipe = ({
         <div className="flex flex-1 flex-col p-4">
           {isPrivate && (
             <p className="pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-primaryaccent/55">
-              Private
+              Privat
             </p>
           )}
 

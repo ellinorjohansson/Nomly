@@ -1,4 +1,6 @@
-export const WEEKLY_MENU_DAYS = ["Monday", "Wednesday", "Friday"];
+import { type RecipeType } from "@/lib/recipeType";
+
+export const WEEKLY_MENU_DAYS = ["Måndag", "Onsdag", "Fredag"];
 export const WEEKLY_MENU_SIZE = WEEKLY_MENU_DAYS.length;
 
 export interface WeeklyMenuRecipe {
@@ -8,6 +10,7 @@ export interface WeeklyMenuRecipe {
   imageSrc: string;
   tag: string[];
   cookingTime: string;
+  recipeType: RecipeType;
 }
 
 export const getWeeklyKey = (date: Date) => {

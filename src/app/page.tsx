@@ -6,21 +6,20 @@ export default function Home() {
   const steps = [
     {
       icon: "edit_note",
-      title: "Save",
+      title: "Spara",
       description:
-        "Clip recipes from any website with a single click. We handle all the messy formatting.",
+        "Spara recept från vilken webbplats som helst med ett enda klick. Vi tar hand om all rörig formatering.",
     },
     {
       icon: "restaurant_menu",
-      title: "Cook",
+      title: "Laga",
       description:
-        "Find exactly what you need to cook tonight. Scale ingredients to your needs.",
+        "Hitta precis det du vill laga i kväll. Anpassa ingredienserna efter dina behov.",
     },
     {
       icon: "group",
-      title: "Share",
-      description:
-        "Share your favorite recipes with friends and family instantly.",
+      title: "Dela",
+      description: "Dela dina favoritrecept med vänner och familj direkt.",
     },
   ];
 
@@ -54,24 +53,24 @@ export default function Home() {
         {/* Content */}
         <div className="relative z-10 mx-auto max-w-2xl text-center">
           <h1 className="mb-6 text-4xl font-serif font-bold text-primaryaccent sm:text-5xl md:text-6xl">
-            Your Recipe Collection
+            Din receptsamling
           </h1>
           <p className="mb-8 text-base leading-relaxed text-secondaryaccent sm:text-lg">
-            Save recipes from anywhere, organize them your way, and never lose a
-            great recipe again. Simple. Beautiful. Yours.
+            Spara recept från var som helst, organisera dem på ditt sätt och
+            tappa aldrig bort ett riktigt bra recept igen. Enkelt. Snyggt. Ditt.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/signup"
               className="px-8 py-3 bg-primaryaccent text-primary rounded-lg font-medium hover:opacity-90 transition"
             >
-              Get Started
+              Kom igång
             </Link>
             <Link
               href="/recipes"
               className="px-8 py-3 border-2 border-primaryaccent text-primaryaccent rounded-lg font-medium hover:bg-secondary transition"
             >
-              Browse Recipes
+              Bläddra bland recept
             </Link>
           </div>
         </div>
@@ -81,7 +80,7 @@ export default function Home() {
       <section className="py-20 px-4 bg-secondary">
         <div className="max-w-6xl mx-auto">
           <h2 className="mb-12 text-center text-3xl font-serif font-bold text-primaryaccent sm:mb-16 sm:text-4xl">
-            How It Works
+            Så fungerar det
           </h2>
           <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8">
             {steps.map((step, i) => (
@@ -115,21 +114,21 @@ export default function Home() {
         <div className="absolute inset-0 bg-primary/20" />
         <div className="relative mx-auto flex min-h-32rem max-w-6xl flex-col items-center justify-center px-4 text-center sm:min-h-36rem">
           <h2 className="mb-10 text-center text-3xl font-serif font-bold text-primaryaccent! sm:mb-16 sm:text-4xl">
-            Why Nomly?
+            Varför Nomly?
           </h2>
           <div className="grid w-full gap-6 md:grid-cols-3 md:gap-8">
             {[
               {
-                title: "100% Free",
-                desc: "No hidden costs. Save unlimited recipes.",
+                title: "100 % gratis",
+                desc: "Inga dolda kostnader. Spara obegränsat med recept.",
               },
               {
-                title: "Cloud Sync",
-                desc: "Access your recipes anywhere, anytime.",
+                title: "Molnsynk",
+                desc: "Kom åt dina recept var som helst, när som helst.",
               },
               {
-                title: "Easy Import",
-                desc: "Submit the form and we handle the rest.",
+                title: "Enkelt",
+                desc: "Skicka in receptet så sköter vi resten.",
               },
             ].map((feature, i) => (
               <div key={i} className="rounded-lg bg-secondary p-6 sm:p-8">
@@ -147,13 +146,13 @@ export default function Home() {
       <section className="py-20 px-4 text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="mb-8 text-3xl font-serif font-bold text-primaryaccent sm:text-4xl">
-            Ready to save your recipes?
+            Redo att spara dina recept?
           </h2>
           <Link
             href="/signup"
             className="inline-block px-8 py-3 bg-primaryaccent text-primary rounded-lg font-medium hover:opacity-90 transition"
           >
-            Start today
+            Börja idag
           </Link>
         </div>
       </section>

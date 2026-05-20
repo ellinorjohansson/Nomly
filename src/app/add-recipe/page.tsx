@@ -15,31 +15,31 @@ export default async function AddRecipePage() {
           <span className="material-symbols-outlined text-3xl">lock</span>
         </div>
         <h1 className="mb-3 text-4xl font-bold text-primaryaccent">
-          Sign in to add recipes
+          Logga in för att lägga till recept
         </h1>
         <p className="mb-8 text-lg leading-relaxed text-primaryaccent/70">
-          Everyone can browse recipes, but creating one requires an account so
-          each recipe can be linked to its author.
+          Alla kan bläddra bland recept, men för att skapa ett eget behöver du
+          ett konto så att receptet kan kopplas till sin författare.
         </p>
         <div className="flex flex-col justify-center gap-3 sm:flex-row">
           <Link
             href="/login?next=/add-recipe"
             className="rounded-full bg-primaryaccent px-6 py-3 font-semibold text-primary transition hover:bg-primaryaccent/90"
           >
-            Sign in
+            Logga in
           </Link>
           <Link
             href="/signup?next=/add-recipe"
             className="rounded-full border border-primaryaccent/15 bg-secondary px-6 py-3 font-semibold text-primaryaccent transition hover:bg-secondaryaccent/15"
           >
-            Create account
+            Skapa konto
           </Link>
         </div>
         <Link
           href="/recipes"
           className="mt-6 inline-block text-sm text-primaryaccent/65 transition hover:text-primaryaccent"
         >
-          Back to recipes
+          Tillbaka till recept
         </Link>
       </div>
     </main>

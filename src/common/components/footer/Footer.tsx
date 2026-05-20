@@ -8,7 +8,7 @@ const Footer = () => {
         <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-end sm:gap-5">
           <h2 className="text-3xl font-logo font-bold">Nomly</h2>
           <p className="text-sm text-secondaryaccent mb-1.5">
-            &copy; {new Date().getFullYear()} {"All rights reserved"}
+            &copy; {new Date().getFullYear()} {"Alla rättigheter förbehållna"}
           </p>
         </div>
 
@@ -16,9 +16,9 @@ const Footer = () => {
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           className="flex items-center gap-1 text-primaryaccent cursor-pointer"
-          aria-label={"Scroll to top"}
+          aria-label={"Skrolla till toppen"}
         >
-          <span className="text-base">Scroll to top</span>
+          <span className="text-base">Skrolla till toppen</span>
           <span className="material-symbols-outlined text-2xl">
             arrow_upward
           </span>

@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { success: false, error: "Email and password are required" },
+        { success: false, error: "E-post och lösenord krävs" },
         { status: 400 },
       );
     }
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { success: false, error: "Invalid email or password" },
+        { success: false, error: "Felaktig e-post eller lösenord" },
         { status: 401 },
       );
     }
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     if (!isValidPassword) {
       return NextResponse.json(
-        { success: false, error: "Invalid email or password" },
+        { success: false, error: "Felaktig e-post eller lösenord" },
         { status: 401 },
       );
     }
@@ -54,9 +54,9 @@ export async function POST(request: NextRequest) {
       email: user.email,
     });
   } catch (error) {
-    console.error("Error logging in:", error);
+    console.error("Fel vid inloggning:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to sign in" },
+      { success: false, error: "Det gick inte att logga in" },
       { status: 500 },
     );
   }

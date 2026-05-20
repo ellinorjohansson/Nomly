@@ -15,14 +15,14 @@ export async function POST(request: NextRequest) {
 
     if (!name || !email || !password) {
       return NextResponse.json(
-        { success: false, error: "Name, email and password are required" },
+        { success: false, error: "Namn, e-post och lösenord krävs" },
         { status: 400 },
       );
     }
 
     if (password.length < 6) {
       return NextResponse.json(
-        { success: false, error: "Password must be at least 6 characters" },
+        { success: false, error: "Lösenordet måste vara minst 6 tecken" },
         { status: 400 },
       );
     }
@@ -31,7 +31,10 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       return NextResponse.json(
-        { success: false, error: "An account with that email already exists" },
+        {
+          success: false,
+          error: "Det finns redan ett konto med den e-postadressen",
+        },
         { status: 409 },
       );
     }
@@ -56,9 +59,9 @@ export async function POST(request: NextRequest) {
       email: user.email,
     });
   } catch (error) {
-    console.error("Error signing up:", error);
+    console.error("Fel vid registrering:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to create account" },
+      { success: false, error: "Det gick inte att skapa konto" },
       { status: 500 },
     );
   }
