@@ -11,25 +11,21 @@ export async function GET() {
 
     const recipes = await Recipe.find({
       isPrivate: { $ne: true },
-      $or: [
-        { recipeType: DEFAULT_RECIPE_TYPE },
-        { recipeType: { $exists: false } },
-        { recipeType: null },
-        { recipeType: "" },
-      ],
     })
       .select("name description imageSrc tag cookingTime recipeType")
       .lean();
 
-    const normalizedRecipes = recipes.map((recipe) => ({
-      _id: String(recipe._id),
-      name: recipe.name || "Namnlöst recept",
-      description: recipe.description || "",
-      imageSrc: recipe.imageSrc || "",
-      tag: normalizeTags(Array.isArray(recipe.tag) ? recipe.tag : []),
-      cookingTime: recipe.cookingTime || "",
-      recipeType: normalizeRecipeType(recipe.recipeType),
-    }));
+    const normalizedRecipes = recipes
+      .map((recipe) => ({
+        _id: String(recipe._id),
+        name: recipe.name || "Namnlöst recept",
+        description: recipe.description || "",
+        imageSrc: recipe.imageSrc || "",
+        tag: normalizeTags(Array.isArray(recipe.tag) ? recipe.tag : []),
+        cookingTime: recipe.cookingTime || "",
+        recipeType: normalizeRecipeType(recipe.recipeType),
+      }))
+      .filter((recipe) => recipe.recipeType === DEFAULT_RECIPE_TYPE);
 
     const weeklyRecipes = pickWeeklyRecipes(
       normalizedRecipes,
