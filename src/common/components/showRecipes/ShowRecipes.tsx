@@ -245,7 +245,7 @@ const ShowRecipes = () => {
               type="button"
               onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
               disabled={currentPage === 1}
-              className="flex-1 rounded-2xl border border-primaryaccent/15 px-4 py-2 text-sm font-medium text-primaryaccent transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45 sm:flex-none"
+              className="flex-1 cursor-pointer rounded-2xl border border-primaryaccent/15 px-4 py-2 text-sm font-medium text-primaryaccent transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45 sm:flex-none"
             >
               Previous
             </button>
@@ -255,7 +255,7 @@ const ShowRecipes = () => {
                 setCurrentPage((page) => Math.min(totalPages, page + 1))
               }
               disabled={currentPage === totalPages}
-              className="flex-1 rounded-2xl bg-primaryaccent px-4 py-2 text-sm font-medium text-primary transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45 sm:flex-none"
+              className="flex-1 cursor-pointer rounded-2xl bg-primaryaccent px-4 py-2 text-sm font-medium text-primary transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45 sm:flex-none"
             >
               Next
             </button>
