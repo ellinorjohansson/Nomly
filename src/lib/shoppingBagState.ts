@@ -32,6 +32,11 @@ const sanitizeStringList = (value: unknown): string[] => {
 export const sanitizeSelectedRecipeIds = (value: unknown) =>
   sanitizeStringList(value);
 
+export const arePersistedShoppingListStatesEqual = (
+  left: PersistedShoppingListState | null,
+  right: PersistedShoppingListState | null,
+) => JSON.stringify(left) === JSON.stringify(right);
+
 export const isPersistedShoppingListStateEmpty = (
   value: PersistedShoppingListState | null,
 ) =>
