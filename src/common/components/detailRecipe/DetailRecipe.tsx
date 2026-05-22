@@ -423,11 +423,10 @@ const DetailRecipe = ({
           <button
             type="button"
             onClick={handleToggleFavorite}
-            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
-              isFavorite
+            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-sm font-semibold transition ${isFavorite
                 ? "border-error/30 bg-error/10 text-error"
                 : "border-primaryaccent/20 bg-white text-primaryaccent hover:bg-secondary"
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-base">
               {isFavorite ? "favorite" : "favorite_border"}
@@ -477,70 +476,70 @@ const DetailRecipe = ({
         recipeState.prepTime ||
         recipeState.cookingTime ||
         recipeState.servings) && (
-        <div className="mb-8 flex flex-wrap gap-3">
-          {totalMinutes !== null && (
-            <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
-              <div className="rounded-xl bg-secondaryaccent/15 p-2 text-primaryaccent">
-                <span className="material-symbols-outlined text-lg">
-                  schedule
-                </span>
-              </div>
-              <div>
-                <div className="text-xs text-primaryaccent/55">Total tid</div>
-                <div className="font-semibold text-primaryaccent">
-                  {formatMinutesAsDuration(totalMinutes)}
+          <div className="mb-8 flex flex-wrap gap-3">
+            {totalMinutes !== null && (
+              <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
+                <div className="rounded-xl bg-secondaryaccent/15 p-2 text-primaryaccent">
+                  <span className="material-symbols-outlined text-lg">
+                    schedule
+                  </span>
+                </div>
+                <div>
+                  <div className="text-xs text-primaryaccent/55">Total tid</div>
+                  <div className="font-semibold text-primaryaccent">
+                    {formatMinutesAsDuration(totalMinutes)}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {recipeState.prepTime && (
-            <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
-              <div className="rounded-xl bg-primaryaccent/10 p-2 text-primaryaccent">
-                <span className="material-symbols-outlined text-lg">
-                  restaurant
-                </span>
-              </div>
-              <div>
-                <div className="text-xs text-primaryaccent/55">Förb.</div>
-                <div className="font-semibold text-primaryaccent">
-                  {formatDuration(recipeState.prepTime)}
+            {recipeState.prepTime && (
+              <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
+                <div className="rounded-xl bg-primaryaccent/10 p-2 text-primaryaccent">
+                  <span className="material-symbols-outlined text-lg">
+                    restaurant
+                  </span>
+                </div>
+                <div>
+                  <div className="text-xs text-primaryaccent/55">Förb.</div>
+                  <div className="font-semibold text-primaryaccent">
+                    {formatDuration(recipeState.prepTime)}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {recipeState.cookingTime && (
-            <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
-              <div className="rounded-xl bg-secondaryaccent/20 p-2 text-primaryaccent">
-                <span className="material-symbols-outlined text-lg">
-                  local_fire_department
-                </span>
-              </div>
-              <div>
-                <div className="text-xs text-primaryaccent/55">Tillaga</div>
-                <div className="font-semibold text-primaryaccent">
-                  {formatDuration(recipeState.cookingTime)}
+            {recipeState.cookingTime && (
+              <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
+                <div className="rounded-xl bg-secondaryaccent/20 p-2 text-primaryaccent">
+                  <span className="material-symbols-outlined text-lg">
+                    local_fire_department
+                  </span>
+                </div>
+                <div>
+                  <div className="text-xs text-primaryaccent/55">Tillaga</div>
+                  <div className="font-semibold text-primaryaccent">
+                    {formatDuration(recipeState.cookingTime)}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {recipeState.servings && (
-            <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
-              <div className="rounded-xl bg-primaryaccent/10 p-2 text-primaryaccent">
-                <span className="material-symbols-outlined text-lg">group</span>
-              </div>
-              <div>
-                <div className="text-xs text-primaryaccent/55">Portioner</div>
-                <div className="font-semibold text-primaryaccent">
-                  {recipeState.servings}
+            {recipeState.servings && (
+              <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
+                <div className="rounded-xl bg-primaryaccent/10 p-2 text-primaryaccent">
+                  <span className="material-symbols-outlined text-lg">group</span>
+                </div>
+                <div>
+                  <div className="text-xs text-primaryaccent/55">Portioner</div>
+                  <div className="font-semibold text-primaryaccent">
+                    {recipeState.servings}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
 
       <div className="grid gap-8 md:grid-cols-[1fr_1.45fr]">
         {ingredientsList.length > 0 && (

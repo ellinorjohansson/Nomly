@@ -225,11 +225,10 @@ const ShowRecipes = () => {
             <button
               type="button"
               onClick={() => setShowFavoritesFirst((value) => !value)}
-              className={`inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-sm font-medium transition ${
-                showFavoritesFirst
+              className={`inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-sm font-medium transition ${showFavoritesFirst
                   ? "bg-secondaryaccent text-white shadow-sm"
                   : "border border-primaryaccent/15 bg-white text-primaryaccent hover:bg-white/80"
-              }`}
+                }`}
             >
               <span className="material-symbols-outlined text-base">
                 favorite
@@ -250,11 +249,10 @@ const ShowRecipes = () => {
                     setVisibilityFilter(filter.key);
                     setCurrentPage(1);
                   }}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                    isActive
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${isActive
                       ? "bg-primaryaccent text-primary shadow-sm"
                       : "bg-white text-primaryaccent hover:bg-white/80"
-                  }`}
+                    }`}
                 >
                   {filter.label}
                 </button>
@@ -267,11 +265,10 @@ const ShowRecipes = () => {
                 setShowOnlyUserRecipes((value) => !value);
                 setCurrentPage(1);
               }}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                showOnlyUserRecipes
+              className={`rounded-full px-4 py-2 text-sm font-medium transition ${showOnlyUserRecipes
                   ? "bg-secondaryaccent text-white shadow-sm"
                   : "bg-white text-primaryaccent hover:bg-white/80"
-              }`}
+                }`}
             >
               Tillagda av dig
             </button>
@@ -289,13 +286,12 @@ const ShowRecipes = () => {
                     setDishTypeFilter(filter.key);
                     setCurrentPage(1);
                   }}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                    isActive
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${isActive
                       ? filter.key === "all"
                         ? "bg-primaryaccent text-primary shadow-sm"
                         : "bg-secondaryaccent text-white shadow-sm"
                       : "bg-white text-primaryaccent hover:bg-white/80"
-                  }`}
+                    }`}
                 >
                   {filter.label}
                 </button>
@@ -316,13 +312,12 @@ const ShowRecipes = () => {
                   setSelectedFilter(filter.key);
                   setCurrentPage(1);
                 }}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                  isActive
+                className={`rounded-full px-4 py-2 text-sm font-medium transition ${isActive
                     ? filter.key === "all"
                       ? "bg-primaryaccent text-primary shadow-sm"
                       : "bg-secondaryaccent text-white shadow-sm"
                     : "bg-white text-primaryaccent hover:bg-white/80"
-                }`}
+                  }`}
               >
                 {filter.label}
               </button>
