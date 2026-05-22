@@ -40,6 +40,10 @@ export async function GET(request: NextRequest) {
     await connectDB();
     const session = getSessionFromCookies(await cookies());
     const { searchParams } = new URL(request.url);
+    const ids = (searchParams.get("ids") || "")
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean);
     const requestedPage = Number.parseInt(searchParams.get("page") || "1", 10);
     const requestedLimit = Number.parseInt(
       searchParams.get("limit") || `${DEFAULT_LIMIT}`,
@@ -86,6 +90,31 @@ export async function GET(request: NextRequest) {
           $and: [visibilityQuery, addedByUserQuery],
         }
       : visibilityQuery;
+
+    if (ids.length > 0) {
+      const selectedRecipes = await Recipe.find({
+        _id: { $in: ids },
+        ...(recipeQuery as object),
+      })
+        .lean()
+        .then((recipes) =>
+          recipes.map((recipe) => ({
+            ...recipe,
+            recipeType: normalizeRecipeType(recipe.recipeType),
+            isPrivate: Boolean(recipe.isPrivate),
+            tag: normalizeTags(Array.isArray(recipe.tag) ? recipe.tag : []),
+          })),
+        );
+
+      const selectedRecipesById = new Map(
+        selectedRecipes.map((recipe) => [String(recipe._id), recipe]),
+      );
+
+      return NextResponse.json({
+        success: true,
+        data: ids.map((id) => selectedRecipesById.get(id)).filter(Boolean),
+      });
+    }
 
     const recipes = await Recipe.find(recipeQuery).sort({ _id: -1 }).lean();
     const normalizedRecipes = recipes.map((recipe) => ({

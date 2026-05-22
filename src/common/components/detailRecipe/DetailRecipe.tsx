@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -17,6 +18,15 @@ import {
   toggleFavoriteRecipe,
 } from "@/lib/clientFavorites";
 import {
+  getSelectedRecipeIds,
+  selectedRecipesUpdatedEventName,
+  toggleSelectedRecipe,
+} from "@/lib/clientSelectedRecipes";
+import {
+  getShoppingBagState,
+  toggleRecipeInShoppingBag,
+} from "@/services/shoppingBagService";
+import {
   appendRecipeSectionHeading,
   normalizeSectionedText,
   parseRecipeSections,
@@ -29,6 +39,7 @@ import EditRecipeModal, { type RecipeFormData } from "./EditRecipeModal";
 interface DetailRecipeProps {
   recipe: IRecipe;
   canDelete?: boolean;
+  currentUserId?: string | null;
 }
 
 const formatTag = (tag: string) =>
@@ -54,6 +65,7 @@ const createFormData = (recipe: IRecipe): RecipeFormData => ({
 const DetailRecipe = ({
   recipe,
   canDelete = Boolean(recipe._id),
+  currentUserId,
 }: DetailRecipeProps) => {
   const router = useRouter();
   const [recipeState, setRecipeState] = useState<IRecipe>({
@@ -76,6 +88,11 @@ const DetailRecipe = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isSelectedForShoppingList, setIsSelectedForShoppingList] =
+    useState(false);
+  const [isUpdatingShoppingList, setIsUpdatingShoppingList] = useState(false);
+  const [isCookModeOpen, setIsCookModeOpen] = useState(false);
+  const [activeCookStepIndex, setActiveCookStepIndex] = useState(0);
   const [checkedIngredientIndexes, setCheckedIngredientIndexes] = useState<
     number[]
   >([]);
@@ -132,6 +149,13 @@ const DetailRecipe = ({
       stepNumber: (instructionStep += 1),
     })),
   }));
+  const instructionSteps = instructionSectionsWithSteps.flatMap((section) =>
+    section.items.map((item) => ({
+      ...item,
+      sectionTitle: section.title,
+    })),
+  );
+  const currentCookStep = instructionSteps[activeCookStepIndex] || null;
   const prepMinutes = parseDurationToMinutes(recipeState.prepTime);
   const cookingMinutes = parseDurationToMinutes(recipeState.cookingTime);
   const totalMinutes =
@@ -158,6 +182,53 @@ const DetailRecipe = ({
       window.removeEventListener("storage", syncFavoriteState);
     };
   }, [recipeState._id]);
+
+  useEffect(() => {
+    if (!recipeState._id) {
+      setIsSelectedForShoppingList(false);
+      return;
+    }
+
+    if (currentUserId) {
+      let isMounted = true;
+
+      const syncSelectedState = async () => {
+        const shoppingBagState = await getShoppingBagState();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setIsSelectedForShoppingList(
+          shoppingBagState.selectedRecipeIds.includes(recipeState._id || ""),
+        );
+      };
+
+      void syncSelectedState();
+
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    const syncSelectedState = () => {
+      setIsSelectedForShoppingList(
+        getSelectedRecipeIds(currentUserId).includes(recipeState._id || ""),
+      );
+    };
+
+    syncSelectedState();
+    window.addEventListener(selectedRecipesUpdatedEventName, syncSelectedState);
+    window.addEventListener("storage", syncSelectedState);
+
+    return () => {
+      window.removeEventListener(
+        selectedRecipesUpdatedEventName,
+        syncSelectedState,
+      );
+      window.removeEventListener("storage", syncSelectedState);
+    };
+  }, [currentUserId, recipeState._id]);
 
   useEffect(() => {
     if (!recipeState._id) {
@@ -204,6 +275,47 @@ const DetailRecipe = ({
       JSON.stringify(checkedIngredientIndexes),
     );
   }, [checkedIngredientIndexes, recipeState._id]);
+
+  useEffect(() => {
+    if (!instructionSteps.length) {
+      setIsCookModeOpen(false);
+      setActiveCookStepIndex(0);
+      return;
+    }
+
+    setActiveCookStepIndex((current) =>
+      Math.min(current, instructionSteps.length - 1),
+    );
+  }, [instructionSteps.length]);
+
+  useEffect(() => {
+    if (!isCookModeOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsCookModeOpen(false);
+        return;
+      }
+
+      if (event.key === "ArrowRight") {
+        setActiveCookStepIndex((current) =>
+          Math.min(current + 1, instructionSteps.length - 1),
+        );
+      }
+
+      if (event.key === "ArrowLeft") {
+        setActiveCookStepIndex((current) => Math.max(current - 1, 0));
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [instructionSteps.length, isCookModeOpen]);
 
   const handleEditChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -360,6 +472,54 @@ const DetailRecipe = ({
     );
   };
 
+  const handleToggleShoppingList = () => {
+    if (!recipeState._id) {
+      return;
+    }
+
+    if (currentUserId) {
+      const updateShoppingBag = async () => {
+        if (isUpdatingShoppingList) {
+          return;
+        }
+
+        setIsUpdatingShoppingList(true);
+
+        try {
+          const nextSelectedState = await toggleRecipeInShoppingBag(
+            recipeState._id || "",
+          );
+
+          setIsSelectedForShoppingList(nextSelectedState);
+          setToastMessage(
+            nextSelectedState
+              ? "Receptet lades till i inköpslistan."
+              : "Receptet togs bort från inköpslistan.",
+          );
+        } catch (error) {
+          console.error("Fel vid uppdatering av inköpslistan:", error);
+          setToastMessage("Det gick inte att uppdatera inköpslistan.");
+        } finally {
+          setIsUpdatingShoppingList(false);
+        }
+      };
+
+      void updateShoppingBag();
+      return;
+    }
+
+    const nextSelectedState = toggleSelectedRecipe(
+      recipeState._id,
+      currentUserId,
+    );
+    setIsSelectedForShoppingList(nextSelectedState);
+    setToastMessage(
+      nextSelectedState
+        ? "Receptet lades till i inköpslistan."
+        : "Receptet togs bort från inköpslistan.",
+    );
+  };
+
   const handleToggleIngredient = (index: number) => {
     setCheckedIngredientIndexes((current) => {
       if (current.includes(index)) {
@@ -401,6 +561,28 @@ const DetailRecipe = ({
     } catch {
       setToastMessage("Det gick inte att kopiera ingredienslistan.");
     }
+  };
+
+  const handleOpenCookMode = () => {
+    if (!instructionSteps.length) {
+      return;
+    }
+
+    setIsCookModeOpen(true);
+  };
+
+  const handleCloseCookMode = () => {
+    setIsCookModeOpen(false);
+  };
+
+  const handleNextCookStep = () => {
+    setActiveCookStepIndex((current) =>
+      Math.min(current + 1, instructionSteps.length - 1),
+    );
+  };
+
+  const handlePreviousCookStep = () => {
+    setActiveCookStepIndex((current) => Math.max(current - 1, 0));
   };
 
   return (
@@ -462,20 +644,52 @@ const DetailRecipe = ({
           {recipeState.name}
         </h1>
         {recipeState._id && (
-          <button
-            type="button"
-            onClick={handleToggleFavorite}
-            className={`inline-flex cursor-pointer items-center gap-1 rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
-              isFavorite
-                ? "border-error/30 bg-error/10 text-error"
-                : "border-primaryaccent/20 bg-white text-primaryaccent hover:bg-secondary"
-            }`}
-          >
-            <span className="material-symbols-outlined text-base">
-              {isFavorite ? "favorite" : "favorite_border"}
-            </span>
-            {isFavorite ? "Favorit" : "Spara favorit"}
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={handleToggleFavorite}
+              className={`inline-flex cursor-pointer items-center gap-1 rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
+                isFavorite
+                  ? "border-error/30 bg-error/10 text-error"
+                  : "border-primaryaccent/20 bg-white text-primaryaccent hover:bg-secondary"
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">
+                {isFavorite ? "favorite" : "favorite_border"}
+              </span>
+              {isFavorite ? "Favorit" : "Spara favorit"}
+            </button>
+            <button
+              type="button"
+              onClick={handleToggleShoppingList}
+              disabled={isUpdatingShoppingList}
+              className={`inline-flex items-center cursor-pointer gap-1 rounded-full border px-3 py-1.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-70 ${
+                isSelectedForShoppingList
+                  ? "border-secondaryaccent/25 bg-secondaryaccent text-white"
+                  : "border-primaryaccent/20 bg-white text-primaryaccent hover:bg-secondary"
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">
+                {isSelectedForShoppingList
+                  ? "check_circle"
+                  : "add_shopping_cart"}
+              </span>
+              {isSelectedForShoppingList
+                ? "Vald till inköpslista"
+                : "Lägg till i inköpslista"}
+            </button>
+            {isSelectedForShoppingList && (
+              <Link
+                href="/shopping-list"
+                className="inline-flex items-center gap-1 rounded-full border border-primaryaccent/15 bg-white px-3 py-1.5 text-sm font-semibold text-primaryaccent transition hover:bg-secondary"
+              >
+                <span className="material-symbols-outlined text-base">
+                  shopping_cart
+                </span>
+                Öppna inköpslista
+              </Link>
+            )}
+          </>
         )}
       </div>
 
@@ -670,12 +884,32 @@ const DetailRecipe = ({
 
         {instructionSectionsWithSteps.length > 0 && (
           <section aria-labelledby="instructions-heading">
-            <h2
-              id="instructions-heading"
-              className="mb-4 text-2xl font-bold text-primaryaccent"
-            >
-              Instruktioner
-            </h2>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2
+                  id="instructions-heading"
+                  className="text-2xl font-bold text-primaryaccent"
+                >
+                  Instruktioner
+                </h2>
+                <p className="text-xs text-primaryaccent/60">
+                  Stegvis matlagning med piltangenter och sparad position.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleOpenCookMode}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-primaryaccent/20 bg-white px-3 py-2 text-sm font-semibold text-primaryaccent transition hover:bg-secondary"
+              >
+                <span className="material-symbols-outlined text-base">
+                  menu_book
+                </span>
+                {activeCookStepIndex > 0
+                  ? "Fortsätt cook mode"
+                  : "Starta cook mode"}
+              </button>
+            </div>
             <div className="space-y-6">
               {instructionSectionsWithSteps.map((section, sectionIndex) => (
                 <div key={`${section.title || "instructions"}-${sectionIndex}`}>
@@ -703,6 +937,137 @@ const DetailRecipe = ({
           </section>
         )}
       </div>
+
+      {isCookModeOpen && currentCookStep && (
+        <div className="fixed inset-0 z-60 overflow-y-auto bg-text/65 px-4 py-6">
+          <div className="mx-auto flex min-h-full w-full max-w-4xl flex-col rounded-[1.75rem] border border-primaryaccent/10 bg-primary p-5 shadow-2xl sm:p-8 lg:max-h-[calc(100vh-3rem)] lg:min-h-0 lg:overflow-hidden">
+            <div className="mb-6 shrink-0 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primaryaccent/55">
+                  Cook mode
+                </p>
+                <h2 className="mt-1 text-2xl font-bold text-primaryaccent sm:text-3xl">
+                  {recipeState.name}
+                </h2>
+                <p className="mt-2 text-sm text-primaryaccent/65">
+                  Steg {currentCookStep.stepNumber} av {instructionSteps.length}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCloseCookMode}
+                className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-primaryaccent/15 bg-white text-primaryaccent transition hover:bg-secondary"
+                aria-label="Stäng cook mode"
+              >
+                <span className="material-symbols-outlined text-base">
+                  close
+                </span>
+              </button>
+            </div>
+
+            <div className="mb-6 shrink-0 flex flex-wrap gap-3">
+              <div className="rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
+                <div className="text-xs text-primaryaccent/55">Progress</div>
+                <div className="font-semibold text-primaryaccent">
+                  {Math.round(
+                    ((activeCookStepIndex + 1) / instructionSteps.length) * 100,
+                  )}
+                  %
+                </div>
+              </div>
+              {recipeState.servings && (
+                <div className="rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
+                  <div className="text-xs text-primaryaccent/55">Portioner</div>
+                  <div className="font-semibold text-primaryaccent">
+                    {recipeState.servings}
+                  </div>
+                </div>
+              )}
+              {totalMinutes !== null && (
+                <div className="rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
+                  <div className="text-xs text-primaryaccent/55">Total tid</div>
+                  <div className="font-semibold text-primaryaccent">
+                    {formatMinutesAsDuration(totalMinutes)}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mb-6 h-2 shrink-0 overflow-hidden rounded-full bg-white/70">
+              <div
+                className="h-full rounded-full bg-primaryaccent transition-all duration-300"
+                style={{
+                  width: `${((activeCookStepIndex + 1) / instructionSteps.length) * 100}%`,
+                }}
+              />
+            </div>
+
+            <div className="grid flex-1 gap-5 lg:min-h-0 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.8fr)]">
+              <div className="rounded-3xl border border-primaryaccent/10 bg-white p-6 shadow-sm sm:p-8 lg:min-h-0 lg:overflow-y-auto">
+                {currentCookStep.sectionTitle && (
+                  <p className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-primaryaccent/55">
+                    {currentCookStep.sectionTitle}
+                  </p>
+                )}
+                <p className="text-2xl leading-relaxed text-text sm:text-3xl">
+                  {currentCookStep.item}
+                </p>
+              </div>
+
+              <div className="rounded-3xl border border-primaryaccent/10 bg-white p-5 shadow-sm lg:min-h-0 lg:overflow-y-auto">
+                <p className="text-sm font-semibold text-primaryaccent">
+                  Nästa steg
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-primaryaccent/70">
+                  {instructionSteps[activeCookStepIndex + 1]?.item ||
+                    "Du är på sista steget. Servera och njut."}
+                </p>
+
+                <div className="mt-6 border-t border-primaryaccent/10 pt-4">
+                  <p className="text-sm font-semibold text-primaryaccent">
+                    Snabbguide
+                  </p>
+                  <p className="mt-3 text-sm leading-relaxed text-primaryaccent/70">
+                    Använd vänster och höger piltangent för att byta steg.
+                    Escape stänger cook mode.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 shrink-0 flex flex-wrap items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={handlePreviousCookStep}
+                disabled={activeCookStepIndex === 0}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-primaryaccent/20 bg-white px-4 py-2.5 text-sm font-semibold text-primaryaccent transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                <span className="material-symbols-outlined text-base">
+                  arrow_back
+                </span>
+                Föregående
+              </button>
+
+              <div className="text-sm text-primaryaccent/65">
+                {activeCookStepIndex + 1} / {instructionSteps.length}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleNextCookStep}
+                disabled={activeCookStepIndex === instructionSteps.length - 1}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-primaryaccent px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primaryaccent/90 disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                Nästa
+                <span className="material-symbols-outlined text-base">
+                  arrow_forward
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {recipeState._id && canDelete && (
         <div className="mt-30 rounded-[1.75rem] border border-primaryaccent/10 bg-white p-5 shadow-sm">

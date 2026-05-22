@@ -20,6 +20,34 @@ interface GetRecipesResponse {
   totalPages: number;
 }
 
+export async function getRecipesByIds(recipeIds: string[]): Promise<IRecipe[]> {
+  const ids = [...new Set(recipeIds.map((id) => id.trim()).filter(Boolean))];
+
+  if (!ids.length) {
+    return [];
+  }
+
+  try {
+    const params = new URLSearchParams({
+      ids: ids.join(","),
+    });
+
+    const res = await fetch(`/api/recipes?${params.toString()}`, {
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      throw new Error("Det gick inte att hämta valda recept");
+    }
+
+    const data = await res.json();
+    return data.data || [];
+  } catch (error) {
+    console.error("Fel vid hämtning av valda recept:", error);
+    return [];
+  }
+}
+
 export async function getRecipes({
   page = 1,
   limit = 12,

@@ -118,6 +118,12 @@ const Header = () => {
           >
             Recept
           </Link>
+          <Link
+            href="/shopping-list"
+            className="text-secondaryaccent hover:text-primaryaccent transition"
+          >
+            Inköpslista
+          </Link>
           {!isSessionLoading && (
             <div className="flex items-center gap-3">
               {sessionUser ? (
@@ -127,7 +133,7 @@ const Header = () => {
                   disabled={isLoggingOut}
                   aria-label="Logga ut"
                   title="Logga ut"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-primaryaccent/15 text-primaryaccent transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex cursor-pointer h-10 w-10 items-center justify-center rounded-full border border-primaryaccent/15 text-primaryaccent transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   <span className="material-symbols-outlined text-[20px]">
                     logout
@@ -201,6 +207,13 @@ const Header = () => {
               onClick={() => setIsNavOpen(false)}
             >
               Recept
+            </Link>
+            <Link
+              href="/shopping-list"
+              className="text-secondaryaccent hover:text-primaryaccent transition"
+              onClick={() => setIsNavOpen(false)}
+            >
+              Inköpslista
             </Link>
             {!isSessionLoading &&
               (sessionUser ? (

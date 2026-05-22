@@ -60,7 +60,7 @@ const EditRecipeModal = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-text/45 px-4 py-6">
-      <div className="mx-auto w-full max-w-3xl rounded-[1.75rem] border border-primaryaccent/10 bg-primary p-6 shadow-2xl sm:p-8">
+      <div className="mx-auto w-full max-w-5xl rounded-[1.75rem] border border-primaryaccent/10 bg-primary p-6 shadow-2xl sm:p-8">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primaryaccent/55">
@@ -86,7 +86,7 @@ const EditRecipeModal = ({
         </div>
 
         <form onSubmit={onSubmit} className="space-y-6">
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)]">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(22rem,0.95fr)] xl:grid-cols-[minmax(0,1.2fr)_minmax(24rem,0.9fr)]">
             <div className="space-y-5">
               <div>
                 <label className="mb-3 block text-sm font-semibold text-primaryaccent">
@@ -251,9 +251,9 @@ const EditRecipeModal = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div>
-                  <label className="mb-3 block text-sm font-semibold text-primaryaccent">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="min-w-0">
+                  <label className="mb-3 block text-sm font-semibold leading-tight text-primaryaccent">
                     Förberedelsetid
                   </label>
                   <input
@@ -265,8 +265,8 @@ const EditRecipeModal = ({
                   />
                 </div>
 
-                <div>
-                  <label className="mb-3 block text-sm font-semibold text-primaryaccent">
+                <div className="min-w-0">
+                  <label className="mb-3 block text-sm font-semibold leading-tight text-primaryaccent">
                     Tillagningstid
                   </label>
                   <input
@@ -278,8 +278,8 @@ const EditRecipeModal = ({
                   />
                 </div>
 
-                <div>
-                  <label className="mb-3 block text-sm font-semibold text-primaryaccent">
+                <div className="min-w-0 sm:col-span-2 xl:col-span-1">
+                  <label className="mb-3 block text-sm font-semibold leading-tight text-primaryaccent">
                     Portioner
                   </label>
                   <input

@@ -66,6 +66,7 @@ export default async function RecipeDetailPage({
         <DetailRecipe
           recipe={normalizedRecipe}
           canDelete={session?.userId === normalizedRecipe.authorId}
+          currentUserId={session?.userId ?? null}
         />
       </div>
     </main>
