@@ -725,8 +725,8 @@ export default function ShoppingListManager({
                                 <select
                                   value={group.key}
                                   onChange={(event) => {
-                                    const nextGroupKey =
-                                      event.target.value as ShoppingCategoryKey;
+                                    const nextGroupKey = event.target
+                                      .value as ShoppingCategoryKey;
 
                                     if (nextGroupKey === group.key) {
                                       return;
@@ -741,14 +741,16 @@ export default function ShoppingListManager({
                                   className="w-full rounded-xl border border-primaryaccent/15 bg-secondary/35 px-3 py-2 text-sm text-primaryaccent outline-none transition focus:border-secondaryaccent/40"
                                   aria-label={`Flytta ${formatShoppingListItemLabel(item)} till en annan kategori`}
                                 >
-                                  {SHOPPING_CATEGORY_OPTIONS.map((categoryOption) => (
-                                    <option
-                                      key={categoryOption.key}
-                                      value={categoryOption.key}
-                                    >
-                                      {categoryOption.label}
-                                    </option>
-                                  ))}
+                                  {SHOPPING_CATEGORY_OPTIONS.map(
+                                    (categoryOption) => (
+                                      <option
+                                        key={categoryOption.key}
+                                        value={categoryOption.key}
+                                      >
+                                        {categoryOption.label}
+                                      </option>
+                                    ),
+                                  )}
                                 </select>
                               </label>
                             )}
