@@ -203,7 +203,7 @@ const ShowRecipes = () => {
                 setCurrentPage(1);
               }}
               disabled={!hasActiveFilters}
-              className="w-full rounded-2xl border border-primaryaccent/15 px-4 py-3 text-sm font-medium text-primaryaccent transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45 md:w-auto"
+              className="w-full rounded-2xl cursor-pointer border border-primaryaccent/15 px-4 py-3 text-sm font-medium text-primaryaccent transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45 md:w-auto"
             >
               Rensa filter
             </button>
@@ -214,7 +214,7 @@ const ShowRecipes = () => {
               type="button"
               onClick={handlePickRandomRecipe}
               disabled={isPickingRandomRecipe}
-              className="inline-flex items-center gap-1.5 rounded-2xl border border-primaryaccent/15 bg-white px-4 py-2 text-sm font-medium text-primaryaccent transition hover:bg-white/80 disabled:cursor-not-allowed disabled:opacity-45"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-2xl border border-primaryaccent/15 bg-white px-4 py-2 text-sm font-medium text-primaryaccent transition hover:bg-white/80 disabled:cursor-not-allowed disabled:opacity-45"
             >
               <span className="material-symbols-outlined text-base">
                 shuffle
@@ -225,10 +225,11 @@ const ShowRecipes = () => {
             <button
               type="button"
               onClick={() => setShowFavoritesFirst((value) => !value)}
-              className={`inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-sm font-medium transition ${showFavoritesFirst
+              className={`inline-flex cursor-pointer items-center gap-1.5 rounded-2xl px-4 py-2 text-sm font-medium transition ${
+                showFavoritesFirst
                   ? "bg-secondaryaccent text-white shadow-sm"
                   : "border border-primaryaccent/15 bg-white text-primaryaccent hover:bg-white/80"
-                }`}
+              }`}
             >
               <span className="material-symbols-outlined text-base">
                 favorite
@@ -249,10 +250,11 @@ const ShowRecipes = () => {
                     setVisibilityFilter(filter.key);
                     setCurrentPage(1);
                   }}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${isActive
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                    isActive
                       ? "bg-primaryaccent text-primary shadow-sm"
                       : "bg-white text-primaryaccent hover:bg-white/80"
-                    }`}
+                  }`}
                 >
                   {filter.label}
                 </button>
@@ -265,10 +267,11 @@ const ShowRecipes = () => {
                 setShowOnlyUserRecipes((value) => !value);
                 setCurrentPage(1);
               }}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition ${showOnlyUserRecipes
+              className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                showOnlyUserRecipes
                   ? "bg-secondaryaccent text-white shadow-sm"
                   : "bg-white text-primaryaccent hover:bg-white/80"
-                }`}
+              }`}
             >
               Tillagda av dig
             </button>
@@ -286,12 +289,13 @@ const ShowRecipes = () => {
                     setDishTypeFilter(filter.key);
                     setCurrentPage(1);
                   }}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${isActive
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                    isActive
                       ? filter.key === "all"
                         ? "bg-primaryaccent text-primary shadow-sm"
                         : "bg-secondaryaccent text-white shadow-sm"
                       : "bg-white text-primaryaccent hover:bg-white/80"
-                    }`}
+                  }`}
                 >
                   {filter.label}
                 </button>
@@ -312,12 +316,13 @@ const ShowRecipes = () => {
                   setSelectedFilter(filter.key);
                   setCurrentPage(1);
                 }}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition ${isActive
+                className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                  isActive
                     ? filter.key === "all"
                       ? "bg-primaryaccent text-primary shadow-sm"
                       : "bg-secondaryaccent text-white shadow-sm"
                     : "bg-white text-primaryaccent hover:bg-white/80"
-                  }`}
+                }`}
               >
                 {filter.label}
               </button>
@@ -361,7 +366,7 @@ const ShowRecipes = () => {
               Inga recept matchar filtret
             </h3>
             <p className="mx-auto mt-2 max-w-md text-sm text-primaryaccent/65">
-              Prova en bredare sokning eller byt tillbaka till Alla for att se
+              Prova en bredare sökning eller byt tillbaka till Alla for att se
               fler recept.
             </p>
           </div>

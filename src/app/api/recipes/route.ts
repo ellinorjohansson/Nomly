@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { getSessionFromCookies } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import { parseDurationToMinutes } from "@/lib/duration";
+import { normalizeSectionedText } from "@/lib/recipeSections";
 import {
   matchesNormalizedKeyword,
   normalizeText,
@@ -68,22 +69,22 @@ export async function GET(request: NextRequest) {
             : { _id: null }
           : session
             ? {
-              $or: [publicRecipeQuery, { authorId: session.userId }],
-            }
+                $or: [publicRecipeQuery, { authorId: session.userId }],
+              }
             : publicRecipeQuery;
 
     const addedByUserQuery = addedByUser
       ? session
         ? {
-          $or: [{ authorId: session.userId }, { authorName: session.name }],
-        }
+            $or: [{ authorId: session.userId }, { authorName: session.name }],
+          }
         : { _id: null }
       : null;
 
     const recipeQuery = addedByUserQuery
       ? {
-        $and: [visibilityQuery, addedByUserQuery],
-      }
+          $and: [visibilityQuery, addedByUserQuery],
+        }
       : visibilityQuery;
 
     const recipes = await Recipe.find(recipeQuery).sort({ _id: -1 }).lean();
@@ -128,12 +129,12 @@ export async function GET(request: NextRequest) {
         activeFilter.key === "all" ||
         (activeFilter.key === "snabbt"
           ? (totalMinutes !== null && totalMinutes <= 30) ||
-          activeFilter.keywords.some((keyword) =>
-            matchesNormalizedKeyword(filterableText, keyword),
-          )
+            activeFilter.keywords.some((keyword) =>
+              matchesNormalizedKeyword(filterableText, keyword),
+            )
           : activeFilter.keywords.some((keyword) =>
-            matchesNormalizedKeyword(filterableText, keyword),
-          ));
+              matchesNormalizedKeyword(filterableText, keyword),
+            ));
 
       if (!matchesFilter) {
         return false;
@@ -221,6 +222,8 @@ export async function POST(request: NextRequest) {
     } = body;
     const normalizedTags = normalizeTags(Array.isArray(tag) ? tag : []);
     const normalizedRecipeType = normalizeRecipeType(recipeType);
+    const normalizedIngredients = normalizeSectionedText(ingredients || "");
+    const normalizedInstructions = normalizeSectionedText(instructions || "");
 
     const newRecipe = new Recipe({
       name,
@@ -230,10 +233,10 @@ export async function POST(request: NextRequest) {
       tag: normalizedTags,
       cookingTime,
       imageSrc,
-      ingredients,
+      ingredients: normalizedIngredients,
       link,
       prepTime,
-      instructions,
+      instructions: normalizedInstructions,
       servings,
       sourceUrl,
       sourceName,
@@ -282,6 +285,22 @@ export async function PUT(request: NextRequest) {
 
     if ("isPrivate" in updateFields) {
       updateFields.isPrivate = Boolean(updateFields.isPrivate);
+    }
+
+    if ("ingredients" in updateFields) {
+      updateFields.ingredients = normalizeSectionedText(
+        typeof updateFields.ingredients === "string"
+          ? updateFields.ingredients
+          : "",
+      );
+    }
+
+    if ("instructions" in updateFields) {
+      updateFields.instructions = normalizeSectionedText(
+        typeof updateFields.instructions === "string"
+          ? updateFields.instructions
+          : "",
+      );
     }
 
     if (!id) {

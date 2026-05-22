@@ -8,6 +8,13 @@ import {
   RECIPE_TYPE_OPTIONS,
   type RecipeType,
 } from "@/lib/recipeType";
+import {
+  appendRecipeSectionHeading,
+  INGREDIENT_SECTION_SUGGESTIONS,
+  INSTRUCTION_SECTION_SUGGESTIONS,
+  normalizeSectionedText,
+  type SectionedRecipeField,
+} from "@/lib/recipeSections";
 import { normalizeTags } from "@/lib/tags";
 
 interface AddRecipeFormProps {
@@ -60,6 +67,13 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
     setFormData((prev) => ({ ...prev, recipeType }));
   };
 
+  const handleInsertSection = (field: SectionedRecipeField, title: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: appendRecipeSectionHeading(prev[field], title),
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -72,6 +86,8 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
+          ingredients: normalizeSectionedText(formData.ingredients),
+          instructions: normalizeSectionedText(formData.instructions),
           tag: normalizeTags(formData.tag),
         }),
       });
@@ -150,11 +166,29 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
                   Ingredienser <span className="text-error">*</span> (en per
                   rad)
                 </label>
+                <p className="mb-3 text-sm text-primaryaccent/65">
+                  Använd rubriker som <span className="font-mono">[Sås]</span>{" "}
+                  för att dela upp receptet i delar.
+                </p>
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {INGREDIENT_SECTION_SUGGESTIONS.map((title) => (
+                    <button
+                      key={title}
+                      type="button"
+                      onClick={() => handleInsertSection("ingredients", title)}
+                      className="rounded-full cursor-pointer border border-primaryaccent/20 bg-secondary px-3 py-1 text-xs font-semibold text-primaryaccent transition hover:border-primaryaccent/35"
+                    >
+                      + {title}
+                    </button>
+                  ))}
+                </div>
                 <textarea
                   name="ingredients"
                   value={formData.ingredients}
                   onChange={handleChange}
-                  placeholder="En ingrediens per rad"
+                  placeholder={
+                    "[Bas]\n500 g pasta\n1 gul lök\n\n[Sås]\n2 dl grädde"
+                  }
                   rows={5}
                   required
                   className="w-full resize-none rounded-xl border border-primaryaccent/20 bg-secondary px-4 py-3 font-mono text-sm text-primaryaccent placeholder:text-primaryaccent/40 focus:outline-none focus:ring-2 focus:ring-primaryaccent/30"
@@ -166,11 +200,30 @@ export default function AddRecipeForm({ authorName }: AddRecipeFormProps) {
                   Instruktioner <span className="text-error">*</span> (ett steg
                   per rad)
                 </label>
+                <p className="mb-3 text-sm text-primaryaccent/65">
+                  Dela upp steg med rubriker som{" "}
+                  <span className="font-mono">[Montering]</span> när receptet
+                  har sås, topping eller servering i flera delar.
+                </p>
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {INSTRUCTION_SECTION_SUGGESTIONS.map((title) => (
+                    <button
+                      key={title}
+                      type="button"
+                      onClick={() => handleInsertSection("instructions", title)}
+                      className="rounded-full cursor-pointer border border-primaryaccent/20 bg-secondary px-3 py-1 text-xs font-semibold text-primaryaccent transition hover:border-primaryaccent/35"
+                    >
+                      + {title}
+                    </button>
+                  ))}
+                </div>
                 <textarea
                   name="instructions"
                   value={formData.instructions}
                   onChange={handleChange}
-                  placeholder="Ett steg per rad"
+                  placeholder={
+                    "[Förbered]\nHacka löken\n\n[Sås]\nRör ihop grädden\n\n[Montering]\nBlanda allt"
+                  }
                   rows={6}
                   required
                   className="w-full resize-none rounded-xl border border-primaryaccent/20 bg-secondary px-4 py-3 font-mono text-sm text-primaryaccent placeholder:text-primaryaccent/40 focus:outline-none focus:ring-2 focus:ring-primaryaccent/30"

@@ -16,6 +16,14 @@ import {
   isFavoriteRecipe,
   toggleFavoriteRecipe,
 } from "@/lib/clientFavorites";
+import {
+  appendRecipeSectionHeading,
+  normalizeSectionedText,
+  parseRecipeSections,
+  serializeRecipeSections,
+  type RecipeTextSection,
+  type SectionedRecipeField,
+} from "@/lib/recipeSections";
 import EditRecipeModal, { type RecipeFormData } from "./EditRecipeModal";
 
 interface DetailRecipeProps {
@@ -103,13 +111,27 @@ const DetailRecipe = ({
   const sourceLabel =
     recipeState.sourceName || recipeState.sourceUrl || recipeState.link;
   const sourceHref = recipeState.sourceUrl || recipeState.link;
-  const ingredientsList = (recipeState.ingredients || "")
-    .split("\n")
-    .filter((item) => item.trim() !== "");
+  const ingredientSections = parseRecipeSections(recipeState.ingredients || "");
+  let ingredientIndex = 0;
+  const ingredientSectionsWithIndexes = ingredientSections.map((section) => ({
+    title: section.title,
+    items: section.items.map((item) => ({ item, index: ingredientIndex++ })),
+  }));
+  const ingredientsList = ingredientSectionsWithIndexes.flatMap((section) =>
+    section.items.map(({ item }) => item),
+  );
   const ingredientCount = ingredientsList.length;
-  const instructionsList = (recipeState.instructions || "")
-    .split("\n")
-    .filter((item) => item.trim() !== "");
+  const instructionSections = parseRecipeSections(
+    recipeState.instructions || "",
+  );
+  let instructionStep = 0;
+  const instructionSectionsWithSteps = instructionSections.map((section) => ({
+    title: section.title,
+    items: section.items.map((item) => ({
+      item,
+      stepNumber: (instructionStep += 1),
+    })),
+  }));
   const prepMinutes = parseDurationToMinutes(recipeState.prepTime);
   const cookingMinutes = parseDurationToMinutes(recipeState.cookingTime);
   const totalMinutes =
@@ -205,6 +227,13 @@ const DetailRecipe = ({
     setEditFormData((prev) => ({ ...prev, recipeType }));
   };
 
+  const handleInsertSection = (field: SectionedRecipeField, title: string) => {
+    setEditFormData((prev) => ({
+      ...prev,
+      [field]: appendRecipeSectionHeading(prev[field], title),
+    }));
+  };
+
   const handleOpenEditModal = () => {
     setEditError(null);
     setEditFormData(createFormData(recipeState));
@@ -240,6 +269,8 @@ const DetailRecipe = ({
         body: JSON.stringify({
           id: recipeState._id,
           ...editFormData,
+          ingredients: normalizeSectionedText(editFormData.ingredients),
+          instructions: normalizeSectionedText(editFormData.instructions),
           tag: normalizeTags(editFormData.tag),
         }),
       });
@@ -255,6 +286,8 @@ const DetailRecipe = ({
       const updatedRecipe: IRecipe = {
         ...recipeState,
         ...editFormData,
+        ingredients: normalizeSectionedText(editFormData.ingredients),
+        instructions: normalizeSectionedText(editFormData.instructions),
         recipeType: normalizeRecipeType(editFormData.recipeType),
         isPrivate: Boolean(editFormData.isPrivate),
         tag: normalizeTags(editFormData.tag),
@@ -347,14 +380,23 @@ const DetailRecipe = ({
       return;
     }
 
-    const uncheckedIngredients = ingredientsList.filter(
-      (_, index) => !checkedIngredientIndexes.includes(index),
+    const uncheckedIngredientSections: RecipeTextSection[] =
+      ingredientSectionsWithIndexes
+        .map((section) => ({
+          title: section.title,
+          items: section.items
+            .filter(({ index }) => !checkedIngredientIndexes.includes(index))
+            .map(({ item }) => item),
+        }))
+        .filter((section) => section.items.length > 0);
+    const copyTarget = serializeRecipeSections(
+      uncheckedIngredientSections.length > 0
+        ? uncheckedIngredientSections
+        : ingredientSections,
     );
-    const copyTarget =
-      uncheckedIngredients.length > 0 ? uncheckedIngredients : ingredientsList;
 
     try {
-      await navigator.clipboard.writeText(copyTarget.join("\n"));
+      await navigator.clipboard.writeText(copyTarget);
       setToastMessage("Ingredienslistan kopierades.");
     } catch {
       setToastMessage("Det gick inte att kopiera ingredienslistan.");
@@ -423,10 +465,11 @@ const DetailRecipe = ({
           <button
             type="button"
             onClick={handleToggleFavorite}
-            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-sm font-semibold transition ${isFavorite
+            className={`inline-flex cursor-pointer items-center gap-1 rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
+              isFavorite
                 ? "border-error/30 bg-error/10 text-error"
                 : "border-primaryaccent/20 bg-white text-primaryaccent hover:bg-secondary"
-              }`}
+            }`}
           >
             <span className="material-symbols-outlined text-base">
               {isFavorite ? "favorite" : "favorite_border"}
@@ -476,73 +519,73 @@ const DetailRecipe = ({
         recipeState.prepTime ||
         recipeState.cookingTime ||
         recipeState.servings) && (
-          <div className="mb-8 flex flex-wrap gap-3">
-            {totalMinutes !== null && (
-              <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
-                <div className="rounded-xl bg-secondaryaccent/15 p-2 text-primaryaccent">
-                  <span className="material-symbols-outlined text-lg">
-                    schedule
-                  </span>
-                </div>
-                <div>
-                  <div className="text-xs text-primaryaccent/55">Total tid</div>
-                  <div className="font-semibold text-primaryaccent">
-                    {formatMinutesAsDuration(totalMinutes)}
-                  </div>
+        <div className="mb-8 flex flex-wrap gap-3">
+          {totalMinutes !== null && (
+            <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
+              <div className="rounded-xl bg-secondaryaccent/15 p-2 text-primaryaccent">
+                <span className="material-symbols-outlined text-lg">
+                  schedule
+                </span>
+              </div>
+              <div>
+                <div className="text-xs text-primaryaccent/55">Total tid</div>
+                <div className="font-semibold text-primaryaccent">
+                  {formatMinutesAsDuration(totalMinutes)}
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {recipeState.prepTime && (
-              <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
-                <div className="rounded-xl bg-primaryaccent/10 p-2 text-primaryaccent">
-                  <span className="material-symbols-outlined text-lg">
-                    restaurant
-                  </span>
-                </div>
-                <div>
-                  <div className="text-xs text-primaryaccent/55">Förb.</div>
-                  <div className="font-semibold text-primaryaccent">
-                    {formatDuration(recipeState.prepTime)}
-                  </div>
+          {recipeState.prepTime && (
+            <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
+              <div className="rounded-xl bg-primaryaccent/10 p-2 text-primaryaccent">
+                <span className="material-symbols-outlined text-lg">
+                  restaurant
+                </span>
+              </div>
+              <div>
+                <div className="text-xs text-primaryaccent/55">Förb.</div>
+                <div className="font-semibold text-primaryaccent">
+                  {formatDuration(recipeState.prepTime)}
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {recipeState.cookingTime && (
-              <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
-                <div className="rounded-xl bg-secondaryaccent/20 p-2 text-primaryaccent">
-                  <span className="material-symbols-outlined text-lg">
-                    local_fire_department
-                  </span>
-                </div>
-                <div>
-                  <div className="text-xs text-primaryaccent/55">Tillaga</div>
-                  <div className="font-semibold text-primaryaccent">
-                    {formatDuration(recipeState.cookingTime)}
-                  </div>
+          {recipeState.cookingTime && (
+            <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
+              <div className="rounded-xl bg-secondaryaccent/20 p-2 text-primaryaccent">
+                <span className="material-symbols-outlined text-lg">
+                  local_fire_department
+                </span>
+              </div>
+              <div>
+                <div className="text-xs text-primaryaccent/55">Tillaga</div>
+                <div className="font-semibold text-primaryaccent">
+                  {formatDuration(recipeState.cookingTime)}
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {recipeState.servings && (
-              <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
-                <div className="rounded-xl bg-primaryaccent/10 p-2 text-primaryaccent">
-                  <span className="material-symbols-outlined text-lg">group</span>
-                </div>
-                <div>
-                  <div className="text-xs text-primaryaccent/55">Portioner</div>
-                  <div className="font-semibold text-primaryaccent">
-                    {recipeState.servings}
-                  </div>
+          {recipeState.servings && (
+            <div className="flex items-center gap-3 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-sm">
+              <div className="rounded-xl bg-primaryaccent/10 p-2 text-primaryaccent">
+                <span className="material-symbols-outlined text-lg">group</span>
+              </div>
+              <div>
+                <div className="text-xs text-primaryaccent/55">Portioner</div>
+                <div className="font-semibold text-primaryaccent">
+                  {recipeState.servings}
                 </div>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid gap-8 md:grid-cols-[1fr_1.45fr]">
-        {ingredientsList.length > 0 && (
+        {ingredientSectionsWithIndexes.length > 0 && (
           <section aria-labelledby="ingredients-heading">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
@@ -553,7 +596,8 @@ const DetailRecipe = ({
                   Ingredienser
                 </h2>
                 <p className="text-xs text-primaryaccent/60">
-                  {checkedIngredientIndexes.length} av {ingredientCount} markerade
+                  {checkedIngredientIndexes.length} av {ingredientCount}{" "}
+                  markerade
                 </p>
               </div>
 
@@ -561,46 +605,70 @@ const DetailRecipe = ({
                 <button
                   type="button"
                   onClick={handleCopyIngredients}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-primaryaccent/20 bg-white px-3 py-1.5 text-xs font-semibold text-primaryaccent transition hover:bg-secondary"
+                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-primaryaccent/20 bg-white px-3 py-1.5 text-xs font-semibold text-primaryaccent transition hover:bg-secondary"
                 >
-                  <span className="material-symbols-outlined text-sm">content_copy</span>
+                  <span className="material-symbols-outlined text-sm">
+                    content_copy
+                  </span>
                   Kopiera
                 </button>
                 <button
                   type="button"
                   onClick={handleResetIngredientChecklist}
                   disabled={!checkedIngredientIndexes.length}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-primaryaccent/20 bg-white px-3 py-1.5 text-xs font-semibold text-primaryaccent transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-45"
+                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-primaryaccent/20 bg-white px-3 py-1.5 text-xs font-semibold text-primaryaccent transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-45"
                 >
-                  <span className="material-symbols-outlined text-sm">restart_alt</span>
+                  <span className="material-symbols-outlined text-sm">
+                    restart_alt
+                  </span>
                   Rensa
                 </button>
               </div>
             </div>
 
             <div className="rounded-2xl border border-primaryaccent/10 bg-white p-5 shadow-sm">
-              <ul className="space-y-3">
-                {ingredientsList.map((ingredient, index) => (
-                  <li key={index} className="flex gap-3 text-sm text-text">
-                    <input
-                      type="checkbox"
-                      checked={checkedIngredientIndexes.includes(index)}
-                      onChange={() => handleToggleIngredient(index)}
-                      className="mt-1 h-4 w-4 rounded border-primaryaccent/25 text-primaryaccent focus:ring-primaryaccent/30"
-                    />
-                    <span
-                      className={checkedIngredientIndexes.includes(index) ? "line-through opacity-50" : ""}
-                    >
-                      {ingredient}
-                    </span>
-                  </li>
+              <div className="space-y-5">
+                {ingredientSectionsWithIndexes.map((section, sectionIndex) => (
+                  <div
+                    key={`${section.title || "ingredients"}-${sectionIndex}`}
+                  >
+                    {section.title && (
+                      <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.12em] text-primaryaccent/60">
+                        {section.title}
+                      </h3>
+                    )}
+                    <ul className="space-y-3">
+                      {section.items.map(({ item, index }) => (
+                        <li
+                          key={index}
+                          className="flex gap-3 text-sm text-text"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checkedIngredientIndexes.includes(index)}
+                            onChange={() => handleToggleIngredient(index)}
+                            className="mt-1 h-4 w-4 cursor-pointer rounded border-primaryaccent/25 text-primaryaccent focus:ring-primaryaccent/30"
+                          />
+                          <span
+                            className={
+                              checkedIngredientIndexes.includes(index)
+                                ? "line-through opacity-50"
+                                : ""
+                            }
+                          >
+                            {item}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           </section>
         )}
 
-        {instructionsList.length > 0 && (
+        {instructionSectionsWithSteps.length > 0 && (
           <section aria-labelledby="instructions-heading">
             <h2
               id="instructions-heading"
@@ -608,21 +676,30 @@ const DetailRecipe = ({
             >
               Instruktioner
             </h2>
-            <ol className="space-y-4">
-              {instructionsList.map((instruction, index) => (
-                <li key={index} className="flex gap-4">
-                  <span
-                    aria-hidden="true"
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primaryaccent text-sm font-bold text-white"
-                  >
-                    {index + 1}
-                  </span>
-                  <p className="pt-1 leading-relaxed text-text">
-                    {instruction}
-                  </p>
-                </li>
+            <div className="space-y-6">
+              {instructionSectionsWithSteps.map((section, sectionIndex) => (
+                <div key={`${section.title || "instructions"}-${sectionIndex}`}>
+                  {section.title && (
+                    <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.12em] text-primaryaccent/60">
+                      {section.title}
+                    </h3>
+                  )}
+                  <ol className="space-y-4">
+                    {section.items.map(({ item, stepNumber }) => (
+                      <li key={stepNumber} className="flex gap-4">
+                        <span
+                          aria-hidden="true"
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primaryaccent text-sm font-bold text-white"
+                        >
+                          {stepNumber}
+                        </span>
+                        <p className="pt-1 leading-relaxed text-text">{item}</p>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
               ))}
-            </ol>
+            </div>
           </section>
         )}
       </div>
@@ -682,6 +759,7 @@ const DetailRecipe = ({
         onSubmit={handleSaveEdit}
         onChange={handleEditChange}
         onTagsChange={handleEditTagsChange}
+        onSectionInsert={handleInsertSection}
         onRecipeTypeChange={handleRecipeTypeChange}
         onVisibilityChange={handleVisibilityChange}
       />

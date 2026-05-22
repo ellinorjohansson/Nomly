@@ -2,6 +2,11 @@
 
 import type { ChangeEventHandler, FormEventHandler } from "react";
 import { RECIPE_TYPE_OPTIONS, type RecipeType } from "@/lib/recipeType";
+import {
+  INGREDIENT_SECTION_SUGGESTIONS,
+  INSTRUCTION_SECTION_SUGGESTIONS,
+  type SectionedRecipeField,
+} from "@/lib/recipeSections";
 
 export interface RecipeFormData {
   name: string;
@@ -30,6 +35,7 @@ interface EditRecipeModalProps {
   onSubmit: FormEventHandler<HTMLFormElement>;
   onChange: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
   onTagsChange: ChangeEventHandler<HTMLInputElement>;
+  onSectionInsert: (_field: SectionedRecipeField, _title: string) => void;
   onRecipeTypeChange: (_recipeType: RecipeType) => void;
   onVisibilityChange: (_isPrivate: boolean) => void;
 }
@@ -44,6 +50,7 @@ const EditRecipeModal = ({
   onSubmit,
   onChange,
   onTagsChange,
+  onSectionInsert,
   onRecipeTypeChange,
   onVisibilityChange,
 }: EditRecipeModalProps) => {
@@ -112,6 +119,22 @@ const EditRecipeModal = ({
                 <label className="mb-3 block text-sm font-semibold text-primaryaccent">
                   Ingredienser
                 </label>
+                <p className="mb-3 text-sm text-primaryaccent/65">
+                  Använd <span className="font-mono">[Sås]</span> för att dela
+                  upp ingredienser i delar.
+                </p>
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {INGREDIENT_SECTION_SUGGESTIONS.map((title) => (
+                    <button
+                      key={title}
+                      type="button"
+                      onClick={() => onSectionInsert("ingredients", title)}
+                      className="rounded-full cursor-pointer border border-primaryaccent/20 bg-secondary px-3 py-1 text-xs font-semibold text-primaryaccent transition hover:border-primaryaccent/35"
+                    >
+                      + {title}
+                    </button>
+                  ))}
+                </div>
                 <textarea
                   name="ingredients"
                   required
@@ -126,6 +149,23 @@ const EditRecipeModal = ({
                 <label className="mb-3 block text-sm font-semibold text-primaryaccent">
                   Instruktioner
                 </label>
+                <p className="mb-3 text-sm text-primaryaccent/65">
+                  Dela upp steg med{" "}
+                  <span className="font-mono">[Montering]</span> eller andra
+                  rubriker när receptet har flera moment.
+                </p>
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {INSTRUCTION_SECTION_SUGGESTIONS.map((title) => (
+                    <button
+                      key={title}
+                      type="button"
+                      onClick={() => onSectionInsert("instructions", title)}
+                      className="rounded-full cursor-pointer border border-primaryaccent/20 bg-secondary px-3 py-1 text-xs font-semibold text-primaryaccent transition hover:border-primaryaccent/35"
+                    >
+                      + {title}
+                    </button>
+                  ))}
+                </div>
                 <textarea
                   name="instructions"
                   required
