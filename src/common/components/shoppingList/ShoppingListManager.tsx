@@ -18,6 +18,7 @@ import {
   type ShoppingListGroup,
 } from "@/lib/shoppingList";
 import {
+  arePersistedShoppingListStatesEqual,
   createPersistedShoppingListState,
   type PersistedShoppingListState,
 } from "@/lib/shoppingBagState";
@@ -204,14 +205,30 @@ export default function ShoppingListManager({
     shoppingListItemCount - checkedShoppingListItemCount;
 
   useEffect(() => {
-    setArrangedShoppingListGroups(
-      applyPersistedShoppingListState(
-        hydratedShoppingListGroups,
-        currentUserId
-          ? persistedShoppingListState
-          : loadShoppingListState(selectedRecipeIds, currentUserId),
-      ),
+    const nextGroups = applyPersistedShoppingListState(
+      hydratedShoppingListGroups,
+      currentUserId
+        ? persistedShoppingListState
+        : loadShoppingListState(selectedRecipeIds, currentUserId),
     );
+
+    setArrangedShoppingListGroups((currentGroups) => {
+      const currentPersistedState = createPersistedShoppingListState(
+        hydratedShoppingListGroups,
+        currentGroups,
+      );
+      const nextPersistedState = createPersistedShoppingListState(
+        hydratedShoppingListGroups,
+        nextGroups,
+      );
+
+      return arePersistedShoppingListStatesEqual(
+        currentPersistedState,
+        nextPersistedState,
+      )
+        ? currentGroups
+        : nextGroups;
+    });
   }, [
     currentUserId,
     hydratedShoppingListGroups,
@@ -224,18 +241,36 @@ export default function ShoppingListManager({
       return;
     }
 
+    const nextPersistedState = createPersistedShoppingListState(
+      hydratedShoppingListGroups,
+      arrangedShoppingListGroups,
+    );
+
     if (currentUserId) {
+      if (
+        arePersistedShoppingListStatesEqual(
+          persistedShoppingListState,
+          nextPersistedState,
+        )
+      ) {
+        return;
+      }
+
       const persistShoppingBag = async () => {
         try {
           const nextShoppingBagState = await saveRemoteShoppingBagState({
             selectedRecipeIds,
-            persistedState: createPersistedShoppingListState(
-              hydratedShoppingListGroups,
-              arrangedShoppingListGroups,
-            ),
+            persistedState: nextPersistedState,
           });
 
-          setPersistedShoppingListState(nextShoppingBagState.persistedState);
+          setPersistedShoppingListState((currentState) =>
+            arePersistedShoppingListStatesEqual(
+              currentState,
+              nextShoppingBagState.persistedState,
+            )
+              ? currentState
+              : nextShoppingBagState.persistedState,
+          );
         } catch (error) {
           console.error("Fel vid sparande av inköpslistan:", error);
         }
@@ -261,6 +296,7 @@ export default function ShoppingListManager({
     hasLoadedShoppingBag,
     hydratedShoppingListGroups,
     isLoadingSelectedRecipes,
+    persistedShoppingListState,
     selectedRecipeIds,
   ]);
 
