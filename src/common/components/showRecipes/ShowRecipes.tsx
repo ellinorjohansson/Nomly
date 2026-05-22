@@ -293,7 +293,7 @@ const ShowRecipes = () => {
               disabled={currentPage === 1}
               className="flex-1 cursor-pointer rounded-2xl border border-primaryaccent/15 px-4 py-2 text-sm font-medium text-primaryaccent transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45 sm:flex-none"
             >
-              Forra
+              Förra
             </button>
             <button
               type="button"
@@ -303,7 +303,7 @@ const ShowRecipes = () => {
               disabled={currentPage === totalPages}
               className="flex-1 cursor-pointer rounded-2xl bg-primaryaccent px-4 py-2 text-sm font-medium text-primary transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45 sm:flex-none"
             >
-              Nasta
+              Nästa
             </button>
           </div>
         </div>
