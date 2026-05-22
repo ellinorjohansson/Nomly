@@ -194,12 +194,20 @@ export default function ShoppingListManager({
   );
   const normalizedSelectedRecipeIds = useMemo(
     () =>
-      [...new Set(selectedRecipeIds.map((id) => id.trim()).filter(Boolean))].sort(),
+      [
+        ...new Set(selectedRecipeIds.map((id) => id.trim()).filter(Boolean)),
+      ].sort(),
     [selectedRecipeIds],
   );
   const loadedSelectedRecipeIds = useMemo(
     () =>
-      [...new Set(selectedRecipes.map((recipe) => recipe._id?.trim() || "").filter(Boolean))].sort(),
+      [
+        ...new Set(
+          selectedRecipes
+            .map((recipe) => recipe._id?.trim() || "")
+            .filter(Boolean),
+        ),
+      ].sort(),
     [selectedRecipes],
   );
   const hasLoadedSelectedRecipesSnapshot = useMemo(
@@ -278,7 +286,11 @@ export default function ShoppingListManager({
       return;
     }
 
-    if (currentUserId && selectedRecipeIds.length > 0 && !hasLoadedSelectedRecipesSnapshot) {
+    if (
+      currentUserId &&
+      selectedRecipeIds.length > 0 &&
+      !hasLoadedSelectedRecipesSnapshot
+    ) {
       return;
     }
 
