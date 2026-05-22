@@ -192,6 +192,32 @@ export default function ShoppingListManager({
     () => buildShoppingList(selectedRecipes),
     [selectedRecipes],
   );
+  const normalizedSelectedRecipeIds = useMemo(
+    () =>
+      [
+        ...new Set(selectedRecipeIds.map((id) => id.trim()).filter(Boolean)),
+      ].sort(),
+    [selectedRecipeIds],
+  );
+  const loadedSelectedRecipeIds = useMemo(
+    () =>
+      [
+        ...new Set(
+          selectedRecipes
+            .map((recipe) => recipe._id?.trim() || "")
+            .filter(Boolean),
+        ),
+      ].sort(),
+    [selectedRecipes],
+  );
+  const hasLoadedSelectedRecipesSnapshot = useMemo(
+    () =>
+      normalizedSelectedRecipeIds.length === loadedSelectedRecipeIds.length &&
+      normalizedSelectedRecipeIds.every(
+        (recipeId, index) => recipeId === loadedSelectedRecipeIds[index],
+      ),
+    [loadedSelectedRecipeIds, normalizedSelectedRecipeIds],
+  );
   const hydratedShoppingListGroups = useMemo(
     () =>
       SHOPPING_CATEGORY_OPTIONS.map((category) => ({
@@ -260,6 +286,14 @@ export default function ShoppingListManager({
       return;
     }
 
+    if (
+      currentUserId &&
+      selectedRecipeIds.length > 0 &&
+      !hasLoadedSelectedRecipesSnapshot
+    ) {
+      return;
+    }
+
     const nextPersistedState = createPersistedShoppingListState(
       hydratedShoppingListGroups,
       arrangedShoppingListGroups,
@@ -313,6 +347,7 @@ export default function ShoppingListManager({
     arrangedShoppingListGroups,
     currentUserId,
     hasLoadedShoppingBag,
+    hasLoadedSelectedRecipesSnapshot,
     hydratedShoppingListGroups,
     isLoadingSelectedRecipes,
     persistedShoppingListState,
