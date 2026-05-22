@@ -1,6 +1,13 @@
 /* eslint-disable @next/next/no-img-element */
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { formatDuration } from "@/lib/duration";
+import {
+  favoritesUpdatedEventName,
+  isFavoriteRecipe,
+} from "@/lib/clientFavorites";
 
 interface OverviewRecipeProps {
   id: string;
@@ -10,6 +17,7 @@ interface OverviewRecipeProps {
   tag: string[];
   cookingTime: string;
   imageSrc: string;
+  showFavoriteBadge?: boolean;
 }
 
 const formatTag = (tag: string) =>
@@ -23,7 +31,28 @@ const OverviewRecipe = ({
   tag,
   cookingTime,
   imageSrc,
+  showFavoriteBadge = true,
 }: OverviewRecipeProps) => {
+  const [favoritesVersion, setFavoritesVersion] = useState(0);
+  const isFavorite = favoritesVersion >= 0 && isFavoriteRecipe(id);
+
+  useEffect(() => {
+    const handleFavoritesChanged = () => {
+      setFavoritesVersion((value) => value + 1);
+    };
+
+    window.addEventListener(favoritesUpdatedEventName, handleFavoritesChanged);
+    window.addEventListener("storage", handleFavoritesChanged);
+
+    return () => {
+      window.removeEventListener(
+        favoritesUpdatedEventName,
+        handleFavoritesChanged,
+      );
+      window.removeEventListener("storage", handleFavoritesChanged);
+    };
+  }, [id]);
+
   return (
     <Link
       href={`/recipes/${id}`}
@@ -31,6 +60,15 @@ const OverviewRecipe = ({
     >
       <article className="flex h-full flex-col rounded-2xl overflow-hidden bg-white shadow-md transition duration-600 hover:shadow-2xl hover:shadow-primaryaccent/70">
         <div className="relative w-full h-56 bg-secondaryaccent/10">
+          {showFavoriteBadge && isFavorite && (
+            <span className="absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-semibold text-primaryaccent shadow-sm">
+              <span className="material-symbols-outlined text-sm text-error">
+                favorite
+              </span>
+              Favorit
+            </span>
+          )}
+
           {imageSrc ? (
             <img
               src={imageSrc}

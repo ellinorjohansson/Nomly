@@ -11,6 +11,11 @@ import {
 import { normalizeRecipeType, type RecipeType } from "@/lib/recipeType";
 import type { IRecipe } from "@/models/Recipe";
 import { normalizeTags } from "@/lib/tags";
+import {
+  favoritesUpdatedEventName,
+  isFavoriteRecipe,
+  toggleFavoriteRecipe,
+} from "@/lib/clientFavorites";
 import EditRecipeModal, { type RecipeFormData } from "./EditRecipeModal";
 
 interface DetailRecipeProps {
@@ -57,11 +62,15 @@ const DetailRecipe = ({
     normalizeTags(recipe.tag || []).join(", "),
   );
   const [editError, setEditError] = useState<string | null>(null);
-  const [showSaveToast, setShowSaveToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [checkedIngredientIndexes, setCheckedIngredientIndexes] = useState<
+    number[]
+  >([]);
 
   useEffect(() => {
     const normalizedRecipe = {
@@ -77,18 +86,18 @@ const DetailRecipe = ({
   }, [recipe]);
 
   useEffect(() => {
-    if (!showSaveToast) {
+    if (!toastMessage) {
       return;
     }
 
     const timeoutId = window.setTimeout(() => {
-      setShowSaveToast(false);
+      setToastMessage(null);
     }, 2500);
 
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [showSaveToast]);
+  }, [toastMessage]);
 
   const tags = recipeState.tag || [];
   const sourceLabel =
@@ -97,6 +106,7 @@ const DetailRecipe = ({
   const ingredientsList = (recipeState.ingredients || "")
     .split("\n")
     .filter((item) => item.trim() !== "");
+  const ingredientCount = ingredientsList.length;
   const instructionsList = (recipeState.instructions || "")
     .split("\n")
     .filter((item) => item.trim() !== "");
@@ -106,6 +116,72 @@ const DetailRecipe = ({
     prepMinutes !== null && cookingMinutes !== null
       ? prepMinutes + cookingMinutes
       : (prepMinutes ?? cookingMinutes);
+
+  useEffect(() => {
+    if (!recipeState._id) {
+      setIsFavorite(false);
+      return;
+    }
+
+    const syncFavoriteState = () => {
+      setIsFavorite(isFavoriteRecipe(recipeState._id || ""));
+    };
+
+    syncFavoriteState();
+    window.addEventListener(favoritesUpdatedEventName, syncFavoriteState);
+    window.addEventListener("storage", syncFavoriteState);
+
+    return () => {
+      window.removeEventListener(favoritesUpdatedEventName, syncFavoriteState);
+      window.removeEventListener("storage", syncFavoriteState);
+    };
+  }, [recipeState._id]);
+
+  useEffect(() => {
+    if (!recipeState._id) {
+      setCheckedIngredientIndexes([]);
+      return;
+    }
+
+    const storageKey = `nomly:ingredients:${recipeState._id}`;
+
+    try {
+      const rawValue = window.localStorage.getItem(storageKey);
+
+      if (!rawValue) {
+        setCheckedIngredientIndexes([]);
+        return;
+      }
+
+      const parsed = JSON.parse(rawValue);
+
+      if (!Array.isArray(parsed)) {
+        setCheckedIngredientIndexes([]);
+        return;
+      }
+
+      const validIndexes = parsed
+        .filter((index): index is number => typeof index === "number")
+        .filter((index) => index >= 0 && index < ingredientCount);
+
+      setCheckedIngredientIndexes(validIndexes);
+    } catch {
+      setCheckedIngredientIndexes([]);
+    }
+  }, [ingredientCount, recipeState._id]);
+
+  useEffect(() => {
+    if (!recipeState._id) {
+      return;
+    }
+
+    const storageKey = `nomly:ingredients:${recipeState._id}`;
+
+    window.localStorage.setItem(
+      storageKey,
+      JSON.stringify(checkedIngredientIndexes),
+    );
+  }, [checkedIngredientIndexes, recipeState._id]);
 
   const handleEditChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -188,7 +264,7 @@ const DetailRecipe = ({
       setEditFormData(createFormData(updatedRecipe));
       setTagsInput(updatedRecipe.tag?.join(", ") || "");
       setIsEditModalOpen(false);
-      setShowSaveToast(true);
+      setToastMessage("Dina ändringar i receptet har sparats.");
       router.refresh();
     } catch (error) {
       setEditError(
@@ -237,12 +313,60 @@ const DetailRecipe = ({
     }
   };
 
+  const handleToggleFavorite = () => {
+    if (!recipeState._id) {
+      return;
+    }
+
+    const favoriteState = toggleFavoriteRecipe(recipeState._id);
+    setIsFavorite(favoriteState);
+    setToastMessage(
+      favoriteState
+        ? "Receptet lades till i dina favoriter."
+        : "Receptet togs bort från dina favoriter.",
+    );
+  };
+
+  const handleToggleIngredient = (index: number) => {
+    setCheckedIngredientIndexes((current) => {
+      if (current.includes(index)) {
+        return current.filter((item) => item !== index);
+      }
+
+      return [...current, index];
+    });
+  };
+
+  const handleResetIngredientChecklist = () => {
+    setCheckedIngredientIndexes([]);
+    setToastMessage("Ingredienslistan är återställd.");
+  };
+
+  const handleCopyIngredients = async () => {
+    if (!ingredientsList.length) {
+      return;
+    }
+
+    const uncheckedIngredients = ingredientsList.filter(
+      (_, index) => !checkedIngredientIndexes.includes(index),
+    );
+    const copyTarget =
+      uncheckedIngredients.length > 0 ? uncheckedIngredients : ingredientsList;
+
+    try {
+      await navigator.clipboard.writeText(copyTarget.join("\n"));
+      setToastMessage("Ingredienslistan kopierades.");
+    } catch {
+      setToastMessage("Det gick inte att kopiera ingredienslistan.");
+    }
+  };
+
   return (
     <article className="mx-auto mb-10 max-w-4xl text-text">
-      {showSaveToast && (
+      {toastMessage && (
         <div className="pointer-events-none fixed right-4 top-20 z-60 rounded-2xl border border-primaryaccent/10 bg-white px-4 py-3 shadow-xl">
           <p className="text-sm font-medium text-primaryaccent">
-            Dina ändringar i receptet har sparats.
+            {toastMessage}
           </p>
         </div>
       )}
@@ -295,6 +419,22 @@ const DetailRecipe = ({
         <h1 className="text-4xl font-bold text-primaryaccent md:text-5xl">
           {recipeState.name}
         </h1>
+        {recipeState._id && (
+          <button
+            type="button"
+            onClick={handleToggleFavorite}
+            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
+              isFavorite
+                ? "border-error/30 bg-error/10 text-error"
+                : "border-primaryaccent/20 bg-white text-primaryaccent hover:bg-secondary"
+            }`}
+          >
+            <span className="material-symbols-outlined text-base">
+              {isFavorite ? "favorite" : "favorite_border"}
+            </span>
+            {isFavorite ? "Favorit" : "Spara favorit"}
+          </button>
+        )}
       </div>
 
       {recipeState.authorName && (
@@ -405,21 +545,55 @@ const DetailRecipe = ({
       <div className="grid gap-8 md:grid-cols-[1fr_1.45fr]">
         {ingredientsList.length > 0 && (
           <section aria-labelledby="ingredients-heading">
-            <h2
-              id="ingredients-heading"
-              className="mb-4 text-2xl font-bold text-primaryaccent"
-            >
-              Ingredienser
-            </h2>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2
+                  id="ingredients-heading"
+                  className="text-2xl font-bold text-primaryaccent"
+                >
+                  Ingredienser
+                </h2>
+                <p className="text-xs text-primaryaccent/60">
+                  {checkedIngredientIndexes.length} av {ingredientCount} markerade
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopyIngredients}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-primaryaccent/20 bg-white px-3 py-1.5 text-xs font-semibold text-primaryaccent transition hover:bg-secondary"
+                >
+                  <span className="material-symbols-outlined text-sm">content_copy</span>
+                  Kopiera
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetIngredientChecklist}
+                  disabled={!checkedIngredientIndexes.length}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-primaryaccent/20 bg-white px-3 py-1.5 text-xs font-semibold text-primaryaccent transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  <span className="material-symbols-outlined text-sm">restart_alt</span>
+                  Rensa
+                </button>
+              </div>
+            </div>
+
             <div className="rounded-2xl border border-primaryaccent/10 bg-white p-5 shadow-sm">
               <ul className="space-y-3">
                 {ingredientsList.map((ingredient, index) => (
                   <li key={index} className="flex gap-3 text-sm text-text">
-                    <span
-                      aria-hidden="true"
-                      className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-secondaryaccent"
+                    <input
+                      type="checkbox"
+                      checked={checkedIngredientIndexes.includes(index)}
+                      onChange={() => handleToggleIngredient(index)}
+                      className="mt-1 h-4 w-4 rounded border-primaryaccent/25 text-primaryaccent focus:ring-primaryaccent/30"
                     />
-                    <span>{ingredient}</span>
+                    <span
+                      className={checkedIngredientIndexes.includes(index) ? "line-through opacity-50" : ""}
+                    >
+                      {ingredient}
+                    </span>
                   </li>
                 ))}
               </ul>

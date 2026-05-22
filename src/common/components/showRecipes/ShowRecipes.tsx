@@ -1,6 +1,7 @@
-import { useDeferredValue, useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import OverviewRecipe from "../overviewRecipe/OverviewRecipe";
-import { getRecipes } from "@/services/recipeService";
+import { getRandomRecipe, getRecipes } from "@/services/recipeService";
 import RecipeCardSkeleton from "@/common/modules/skeleton/RecipeCardSkeleton";
 import { IRecipe } from "@/models/Recipe";
 import {
@@ -10,6 +11,10 @@ import {
 } from "@/lib/recipeType";
 import { normalizeTags } from "@/lib/tags";
 import { normalizeText, RECIPE_FILTERS } from "@/lib/recipeFilters";
+import {
+  favoritesUpdatedEventName,
+  getFavoriteRecipeIds,
+} from "@/lib/clientFavorites";
 
 const RECIPES_PER_PAGE = 12;
 const VISIBILITY_FILTERS = [
@@ -30,6 +35,7 @@ type VisibilityFilter = (typeof VISIBILITY_FILTERS)[number]["key"];
 type DishTypeFilter = "all" | RecipeType;
 
 const ShowRecipes = () => {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [recipes, setRecipes] = useState<IRecipe[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -41,8 +47,26 @@ const ShowRecipes = () => {
     useState<VisibilityFilter>("all");
   const [dishTypeFilter, setDishTypeFilter] = useState<DishTypeFilter>("all");
   const [showOnlyUserRecipes, setShowOnlyUserRecipes] = useState(false);
+  const [showFavoritesFirst, setShowFavoritesFirst] = useState(false);
+  const [favoriteRecipeIds, setFavoriteRecipeIds] = useState<string[]>([]);
+  const [isPickingRandomRecipe, setIsPickingRandomRecipe] = useState(false);
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const normalizedSearchQuery = normalizeText(deferredSearchQuery.trim());
+
+  useEffect(() => {
+    const syncFavoriteIds = () => {
+      setFavoriteRecipeIds(getFavoriteRecipeIds());
+    };
+
+    syncFavoriteIds();
+    window.addEventListener(favoritesUpdatedEventName, syncFavoriteIds);
+    window.addEventListener("storage", syncFavoriteIds);
+
+    return () => {
+      window.removeEventListener(favoritesUpdatedEventName, syncFavoriteIds);
+      window.removeEventListener("storage", syncFavoriteIds);
+    };
+  }, []);
 
   useEffect(() => {
     async function fetchRecipes() {
@@ -80,6 +104,50 @@ const ShowRecipes = () => {
     dishTypeFilter,
     showOnlyUserRecipes,
   ]);
+
+  const favoriteRecipeSet = useMemo(
+    () => new Set(favoriteRecipeIds),
+    [favoriteRecipeIds],
+  );
+
+  const displayedRecipes = useMemo(() => {
+    if (!showFavoritesFirst) {
+      return recipes;
+    }
+
+    const favorites = recipes.filter((recipe) =>
+      recipe._id ? favoriteRecipeSet.has(recipe._id) : false,
+    );
+    const others = recipes.filter((recipe) =>
+      recipe._id ? !favoriteRecipeSet.has(recipe._id) : true,
+    );
+
+    return [...favorites, ...others];
+  }, [favoriteRecipeSet, recipes, showFavoritesFirst]);
+
+  const handlePickRandomRecipe = async () => {
+    if (isPickingRandomRecipe) {
+      return;
+    }
+
+    setIsPickingRandomRecipe(true);
+
+    try {
+      const randomRecipe = await getRandomRecipe({
+        search: normalizedSearchQuery,
+        filter: selectedFilter,
+        visibility: visibilityFilter,
+        recipeType: dishTypeFilter,
+        addedByUser: showOnlyUserRecipes,
+      });
+
+      if (randomRecipe?._id) {
+        router.push(`/recipes/${randomRecipe._id}`);
+      }
+    } finally {
+      setIsPickingRandomRecipe(false);
+    }
+  };
 
   const hasActiveFilters =
     Boolean(normalizedSearchQuery) ||
@@ -138,6 +206,35 @@ const ShowRecipes = () => {
               className="w-full rounded-2xl border border-primaryaccent/15 px-4 py-3 text-sm font-medium text-primaryaccent transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45 md:w-auto"
             >
               Rensa filter
+            </button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handlePickRandomRecipe}
+              disabled={isPickingRandomRecipe}
+              className="inline-flex items-center gap-1.5 rounded-2xl border border-primaryaccent/15 bg-white px-4 py-2 text-sm font-medium text-primaryaccent transition hover:bg-white/80 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              <span className="material-symbols-outlined text-base">
+                shuffle
+              </span>
+              {isPickingRandomRecipe ? "Väljer recept..." : "Överraska mig"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowFavoritesFirst((value) => !value)}
+              className={`inline-flex items-center gap-1.5 rounded-2xl px-4 py-2 text-sm font-medium transition ${
+                showFavoritesFirst
+                  ? "bg-secondaryaccent text-white shadow-sm"
+                  : "border border-primaryaccent/15 bg-white text-primaryaccent hover:bg-white/80"
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">
+                favorite
+              </span>
+              Favoriter först
             </button>
           </div>
 
@@ -235,7 +332,7 @@ const ShowRecipes = () => {
 
         {!loading && (
           <p className="mt-4 text-sm text-primaryaccent/60">
-            Visar {recipes.length} av {totalRecipes} recept
+            Visar {displayedRecipes.length} av {totalRecipes} recept
           </p>
         )}
       </div>
@@ -247,8 +344,8 @@ const ShowRecipes = () => {
               <RecipeCardSkeleton />
             </div>
           ))
-        ) : recipes.length > 0 ? (
-          recipes.map((recipe, index) => (
+        ) : displayedRecipes.length > 0 ? (
+          displayedRecipes.map((recipe, index) => (
             <OverviewRecipe
               key={recipe._id || index}
               id={recipe._id || ""}

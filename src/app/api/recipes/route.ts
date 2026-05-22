@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
     const visibility = getVisibilityFilter(searchParams.get("visibility"));
     const recipeType = getRecipeTypeFilter(searchParams.get("recipeType"));
     const addedByUser = searchParams.get("addedByUser") === "true";
+    const shouldPickRandom = searchParams.get("random") === "true";
 
     const currentPage = Number.isNaN(requestedPage)
       ? 1
@@ -148,6 +149,18 @@ export async function GET(request: NextRequest) {
 
       return searchableText.includes(normalizedSearch);
     });
+
+    if (shouldPickRandom) {
+      if (!matchingRecipes.length) {
+        return NextResponse.json({ success: true, data: null });
+      }
+
+      const randomIndex = Math.floor(Math.random() * matchingRecipes.length);
+      return NextResponse.json({
+        success: true,
+        data: matchingRecipes[randomIndex],
+      });
+    }
 
     const total = matchingRecipes.length;
     const totalPages = Math.max(1, Math.ceil(total / limit));
