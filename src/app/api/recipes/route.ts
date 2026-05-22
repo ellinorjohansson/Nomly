@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { getSessionFromCookies } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import { parseDurationToMinutes } from "@/lib/duration";
+import { normalizeSectionedText } from "@/lib/recipeSections";
 import {
   matchesNormalizedKeyword,
   normalizeText,
@@ -39,6 +40,10 @@ export async function GET(request: NextRequest) {
     await connectDB();
     const session = getSessionFromCookies(await cookies());
     const { searchParams } = new URL(request.url);
+    const ids = (searchParams.get("ids") || "")
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean);
     const requestedPage = Number.parseInt(searchParams.get("page") || "1", 10);
     const requestedLimit = Number.parseInt(
       searchParams.get("limit") || `${DEFAULT_LIMIT}`,
@@ -49,6 +54,7 @@ export async function GET(request: NextRequest) {
     const visibility = getVisibilityFilter(searchParams.get("visibility"));
     const recipeType = getRecipeTypeFilter(searchParams.get("recipeType"));
     const addedByUser = searchParams.get("addedByUser") === "true";
+    const shouldPickRandom = searchParams.get("random") === "true";
 
     const currentPage = Number.isNaN(requestedPage)
       ? 1
@@ -84,6 +90,31 @@ export async function GET(request: NextRequest) {
           $and: [visibilityQuery, addedByUserQuery],
         }
       : visibilityQuery;
+
+    if (ids.length > 0) {
+      const selectedRecipes = await Recipe.find({
+        _id: { $in: ids },
+        ...(recipeQuery as object),
+      })
+        .lean()
+        .then((recipes) =>
+          recipes.map((recipe) => ({
+            ...recipe,
+            recipeType: normalizeRecipeType(recipe.recipeType),
+            isPrivate: Boolean(recipe.isPrivate),
+            tag: normalizeTags(Array.isArray(recipe.tag) ? recipe.tag : []),
+          })),
+        );
+
+      const selectedRecipesById = new Map(
+        selectedRecipes.map((recipe) => [String(recipe._id), recipe]),
+      );
+
+      return NextResponse.json({
+        success: true,
+        data: ids.map((id) => selectedRecipesById.get(id)).filter(Boolean),
+      });
+    }
 
     const recipes = await Recipe.find(recipeQuery).sort({ _id: -1 }).lean();
     const normalizedRecipes = recipes.map((recipe) => ({
@@ -149,6 +180,18 @@ export async function GET(request: NextRequest) {
       return searchableText.includes(normalizedSearch);
     });
 
+    if (shouldPickRandom) {
+      if (!matchingRecipes.length) {
+        return NextResponse.json({ success: true, data: null });
+      }
+
+      const randomIndex = Math.floor(Math.random() * matchingRecipes.length);
+      return NextResponse.json({
+        success: true,
+        data: matchingRecipes[randomIndex],
+      });
+    }
+
     const total = matchingRecipes.length;
     const totalPages = Math.max(1, Math.ceil(total / limit));
     const safePage = Math.min(currentPage, totalPages);
@@ -208,6 +251,8 @@ export async function POST(request: NextRequest) {
     } = body;
     const normalizedTags = normalizeTags(Array.isArray(tag) ? tag : []);
     const normalizedRecipeType = normalizeRecipeType(recipeType);
+    const normalizedIngredients = normalizeSectionedText(ingredients || "");
+    const normalizedInstructions = normalizeSectionedText(instructions || "");
 
     const newRecipe = new Recipe({
       name,
@@ -217,10 +262,10 @@ export async function POST(request: NextRequest) {
       tag: normalizedTags,
       cookingTime,
       imageSrc,
-      ingredients,
+      ingredients: normalizedIngredients,
       link,
       prepTime,
-      instructions,
+      instructions: normalizedInstructions,
       servings,
       sourceUrl,
       sourceName,
@@ -269,6 +314,22 @@ export async function PUT(request: NextRequest) {
 
     if ("isPrivate" in updateFields) {
       updateFields.isPrivate = Boolean(updateFields.isPrivate);
+    }
+
+    if ("ingredients" in updateFields) {
+      updateFields.ingredients = normalizeSectionedText(
+        typeof updateFields.ingredients === "string"
+          ? updateFields.ingredients
+          : "",
+      );
+    }
+
+    if ("instructions" in updateFields) {
+      updateFields.instructions = normalizeSectionedText(
+        typeof updateFields.instructions === "string"
+          ? updateFields.instructions
+          : "",
+      );
     }
 
     if (!id) {

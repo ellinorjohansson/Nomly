@@ -2,6 +2,11 @@
 
 import type { ChangeEventHandler, FormEventHandler } from "react";
 import { RECIPE_TYPE_OPTIONS, type RecipeType } from "@/lib/recipeType";
+import {
+  INGREDIENT_SECTION_SUGGESTIONS,
+  INSTRUCTION_SECTION_SUGGESTIONS,
+  type SectionedRecipeField,
+} from "@/lib/recipeSections";
 
 export interface RecipeFormData {
   name: string;
@@ -30,6 +35,7 @@ interface EditRecipeModalProps {
   onSubmit: FormEventHandler<HTMLFormElement>;
   onChange: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
   onTagsChange: ChangeEventHandler<HTMLInputElement>;
+  onSectionInsert: (_field: SectionedRecipeField, _title: string) => void;
   onRecipeTypeChange: (_recipeType: RecipeType) => void;
   onVisibilityChange: (_isPrivate: boolean) => void;
 }
@@ -44,6 +50,7 @@ const EditRecipeModal = ({
   onSubmit,
   onChange,
   onTagsChange,
+  onSectionInsert,
   onRecipeTypeChange,
   onVisibilityChange,
 }: EditRecipeModalProps) => {
@@ -53,7 +60,7 @@ const EditRecipeModal = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-text/45 px-4 py-6">
-      <div className="mx-auto w-full max-w-3xl rounded-[1.75rem] border border-primaryaccent/10 bg-primary p-6 shadow-2xl sm:p-8">
+      <div className="mx-auto w-full max-w-5xl rounded-[1.75rem] border border-primaryaccent/10 bg-primary p-6 shadow-2xl sm:p-8">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primaryaccent/55">
@@ -79,7 +86,7 @@ const EditRecipeModal = ({
         </div>
 
         <form onSubmit={onSubmit} className="space-y-6">
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)]">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(22rem,0.95fr)] xl:grid-cols-[minmax(0,1.2fr)_minmax(24rem,0.9fr)]">
             <div className="space-y-5">
               <div>
                 <label className="mb-3 block text-sm font-semibold text-primaryaccent">
@@ -112,6 +119,22 @@ const EditRecipeModal = ({
                 <label className="mb-3 block text-sm font-semibold text-primaryaccent">
                   Ingredienser
                 </label>
+                <p className="mb-3 text-sm text-primaryaccent/65">
+                  Använd <span className="font-mono">[Sås]</span> för att dela
+                  upp ingredienser i delar.
+                </p>
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {INGREDIENT_SECTION_SUGGESTIONS.map((title) => (
+                    <button
+                      key={title}
+                      type="button"
+                      onClick={() => onSectionInsert("ingredients", title)}
+                      className="rounded-full cursor-pointer border border-primaryaccent/20 bg-secondary px-3 py-1 text-xs font-semibold text-primaryaccent transition hover:border-primaryaccent/35"
+                    >
+                      + {title}
+                    </button>
+                  ))}
+                </div>
                 <textarea
                   name="ingredients"
                   required
@@ -126,6 +149,23 @@ const EditRecipeModal = ({
                 <label className="mb-3 block text-sm font-semibold text-primaryaccent">
                   Instruktioner
                 </label>
+                <p className="mb-3 text-sm text-primaryaccent/65">
+                  Dela upp steg med{" "}
+                  <span className="font-mono">[Montering]</span> eller andra
+                  rubriker när receptet har flera moment.
+                </p>
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {INSTRUCTION_SECTION_SUGGESTIONS.map((title) => (
+                    <button
+                      key={title}
+                      type="button"
+                      onClick={() => onSectionInsert("instructions", title)}
+                      className="rounded-full cursor-pointer border border-primaryaccent/20 bg-secondary px-3 py-1 text-xs font-semibold text-primaryaccent transition hover:border-primaryaccent/35"
+                    >
+                      + {title}
+                    </button>
+                  ))}
+                </div>
                 <textarea
                   name="instructions"
                   required
@@ -211,9 +251,9 @@ const EditRecipeModal = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div>
-                  <label className="mb-3 block text-sm font-semibold text-primaryaccent">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="min-w-0">
+                  <label className="mb-3 block text-sm font-semibold leading-tight text-primaryaccent">
                     Förberedelsetid
                   </label>
                   <input
@@ -225,8 +265,8 @@ const EditRecipeModal = ({
                   />
                 </div>
 
-                <div>
-                  <label className="mb-3 block text-sm font-semibold text-primaryaccent">
+                <div className="min-w-0">
+                  <label className="mb-3 block text-sm font-semibold leading-tight text-primaryaccent">
                     Tillagningstid
                   </label>
                   <input
@@ -238,8 +278,8 @@ const EditRecipeModal = ({
                   />
                 </div>
 
-                <div>
-                  <label className="mb-3 block text-sm font-semibold text-primaryaccent">
+                <div className="min-w-0 sm:col-span-2 xl:col-span-1">
+                  <label className="mb-3 block text-sm font-semibold leading-tight text-primaryaccent">
                     Portioner
                   </label>
                   <input

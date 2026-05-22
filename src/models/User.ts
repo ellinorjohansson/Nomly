@@ -1,11 +1,51 @@
 import mongoose, { Model, Schema } from "mongoose";
+import type { PersistedShoppingListState } from "@/lib/shoppingBagState";
 
 export interface IUser {
   _id?: string;
   name: string;
   email: string;
   passwordHash: string;
+  shoppingBagSelectedRecipeIds?: string[];
+  shoppingBagPersistedState?: PersistedShoppingListState | null;
 }
+
+const ShoppingBagGroupSchema = new Schema(
+  {
+    key: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    itemKeys: {
+      type: [String],
+      default: [],
+    },
+  },
+  {
+    _id: false,
+  },
+);
+
+const ShoppingBagStateSchema = new Schema(
+  {
+    groups: {
+      type: [ShoppingBagGroupSchema],
+      default: [],
+    },
+    checkedItemKeys: {
+      type: [String],
+      default: [],
+    },
+    deletedItemKeys: {
+      type: [String],
+      default: [],
+    },
+  },
+  {
+    _id: false,
+  },
+);
 
 const UserSchema = new Schema<IUser>(
   {
@@ -24,6 +64,14 @@ const UserSchema = new Schema<IUser>(
     passwordHash: {
       type: String,
       required: true,
+    },
+    shoppingBagSelectedRecipeIds: {
+      type: [String],
+      default: [],
+    },
+    shoppingBagPersistedState: {
+      type: ShoppingBagStateSchema,
+      default: null,
     },
   },
   {
