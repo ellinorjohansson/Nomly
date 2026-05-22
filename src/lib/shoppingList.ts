@@ -17,7 +17,7 @@ export interface ShoppingListItem {
   totalQuantity: number | null;
   quantityUnit: string | null;
   hasConsistentQuantity: boolean;
-  isChecked?: boolean;
+  isChecked: boolean;
 }
 
 export interface ShoppingListGroup {
@@ -516,6 +516,7 @@ export const buildShoppingList = (recipes: IRecipe[]): ShoppingListGroup[] => {
           totalQuantity: parsedAmount?.quantity ?? null,
           quantityUnit: parsedAmount?.unit ?? null,
           hasConsistentQuantity: Boolean(parsedAmount),
+          isChecked: false,
         });
       }
     }
