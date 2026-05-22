@@ -60,9 +60,28 @@ export default function ShoppingListManager({
   >([]);
   const [draggedShoppingItem, setDraggedShoppingItem] =
     useState<DraggedShoppingItem | null>(null);
+  const [usesTouchInteractions, setUsesTouchInteractions] = useState(false);
   const [shoppingListMessage, setShoppingListMessage] = useState<string | null>(
     null,
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(pointer: coarse), (hover: none)");
+    const syncInteractionMode = () => {
+      setUsesTouchInteractions(mediaQuery.matches);
+    };
+
+    syncInteractionMode();
+    mediaQuery.addEventListener("change", syncInteractionMode);
+
+    return () => {
+      mediaQuery.removeEventListener("change", syncInteractionMode);
+    };
+  }, []);
 
   useEffect(() => {
     if (currentUserId) {
@@ -376,18 +395,13 @@ export default function ShoppingListManager({
     setShoppingListMessage("Ingrediensen togs bort från inköpslistan.");
   };
 
-  const handleShoppingItemDragStart = (
+  const moveShoppingItem = (
     sourceGroupKey: ShoppingCategoryKey,
     itemKey: string,
-  ) => {
-    setDraggedShoppingItem({ sourceGroupKey, itemKey });
-  };
-
-  const handleShoppingItemDrop = (
     targetGroupKey: ShoppingCategoryKey,
     targetItemKey?: string,
   ) => {
-    if (!draggedShoppingItem) {
+    if (sourceGroupKey === targetGroupKey && !targetItemKey) {
       return;
     }
 
@@ -395,12 +409,12 @@ export default function ShoppingListManager({
       let movedItem: ShoppingListGroup["items"][number] | null = null;
 
       const groupsWithoutItem = currentGroups.map((group) => {
-        if (group.key !== draggedShoppingItem.sourceGroupKey) {
+        if (group.key !== sourceGroupKey) {
           return group;
         }
 
         const nextItems = group.items.filter((item) => {
-          if (item.normalizedLabel !== draggedShoppingItem.itemKey) {
+          if (item.normalizedLabel !== itemKey) {
             return true;
           }
 
@@ -451,8 +465,31 @@ export default function ShoppingListManager({
       });
     });
 
-    setDraggedShoppingItem(null);
     setShoppingListMessage("Ingrediensen flyttades i inköpslistan.");
+  };
+
+  const handleShoppingItemDragStart = (
+    sourceGroupKey: ShoppingCategoryKey,
+    itemKey: string,
+  ) => {
+    setDraggedShoppingItem({ sourceGroupKey, itemKey });
+  };
+
+  const handleShoppingItemDrop = (
+    targetGroupKey: ShoppingCategoryKey,
+    targetItemKey?: string,
+  ) => {
+    if (!draggedShoppingItem) {
+      return;
+    }
+
+    moveShoppingItem(
+      draggedShoppingItem.sourceGroupKey,
+      draggedShoppingItem.itemKey,
+      targetGroupKey,
+      targetItemKey,
+    );
+    setDraggedShoppingItem(null);
   };
 
   const handleShoppingDragEnd = () => {
@@ -478,7 +515,7 @@ export default function ShoppingListManager({
             </h1>
             <p className="mt-2 text-sm text-primaryaccent/70">
               Nomly summerar enkla mängder, tar bara med ingredienser som inte
-              redan är avbockade och låter dig dra ingredienser till rätt
+              redan är avbockade och låter dig flytta ingredienser till rätt
               kategori.
             </p>
           </div>
@@ -549,45 +586,72 @@ export default function ShoppingListManager({
                 <div
                   key={group.key}
                   className="rounded-3xl border border-primaryaccent/10 bg-secondary/40 p-4"
-                  onDragOver={(event) => {
-                    event.preventDefault();
-                  }}
-                  onDrop={(event) => {
-                    event.preventDefault();
-                    handleShoppingItemDrop(group.key);
-                  }}
+                  onDragOver={
+                    usesTouchInteractions
+                      ? undefined
+                      : (event) => {
+                          event.preventDefault();
+                        }
+                  }
+                  onDrop={
+                    usesTouchInteractions
+                      ? undefined
+                      : (event) => {
+                          event.preventDefault();
+                          handleShoppingItemDrop(group.key);
+                        }
+                  }
                 >
                   <div className="flex items-center justify-between gap-3">
                     <h4 className="text-sm font-semibold uppercase tracking-[0.14em] text-primaryaccent/65">
                       {group.label}
                     </h4>
                     <span className="text-xs text-primaryaccent/50">
-                      Dra hit
+                      {usesTouchInteractions ? "Flytta med menyn" : "Dra hit"}
                     </span>
                   </div>
                   <ul className="mt-4 space-y-3">
                     {group.items.map((item) => (
                       <li
                         key={item.normalizedLabel}
-                        draggable
-                        onDragStart={() =>
-                          handleShoppingItemDragStart(
-                            group.key,
-                            item.normalizedLabel,
-                          )
+                        draggable={!usesTouchInteractions}
+                        onDragStart={
+                          usesTouchInteractions
+                            ? undefined
+                            : () =>
+                                handleShoppingItemDragStart(
+                                  group.key,
+                                  item.normalizedLabel,
+                                )
                         }
-                        onDragEnd={handleShoppingDragEnd}
-                        onDragOver={(event) => {
-                          event.preventDefault();
-                        }}
-                        onDrop={(event) => {
-                          event.preventDefault();
-                          handleShoppingItemDrop(
-                            group.key,
-                            item.normalizedLabel,
-                          );
-                        }}
-                        className={`cursor-grab rounded-2xl border border-primaryaccent/10 bg-white px-3 py-3 text-sm text-primaryaccent shadow-sm active:cursor-grabbing ${
+                        onDragEnd={
+                          usesTouchInteractions
+                            ? undefined
+                            : handleShoppingDragEnd
+                        }
+                        onDragOver={
+                          usesTouchInteractions
+                            ? undefined
+                            : (event) => {
+                                event.preventDefault();
+                              }
+                        }
+                        onDrop={
+                          usesTouchInteractions
+                            ? undefined
+                            : (event) => {
+                                event.preventDefault();
+                                handleShoppingItemDrop(
+                                  group.key,
+                                  item.normalizedLabel,
+                                );
+                              }
+                        }
+                        className={`rounded-2xl border border-primaryaccent/10 bg-white px-3 py-3 text-sm text-primaryaccent shadow-sm ${
+                          usesTouchInteractions
+                            ? ""
+                            : "cursor-grab active:cursor-grabbing"
+                        } ${
                           draggedShoppingItem?.itemKey === item.normalizedLabel
                             ? "opacity-50"
                             : item.isChecked
@@ -624,9 +688,11 @@ export default function ShoppingListManager({
                                   : "radio_button_unchecked"}
                               </span>
                             </button>
-                            <span className="material-symbols-outlined text-base text-primaryaccent/45">
-                              drag_indicator
-                            </span>
+                            {!usesTouchInteractions && (
+                              <span className="material-symbols-outlined text-base text-primaryaccent/45">
+                                drag_indicator
+                              </span>
+                            )}
                           </div>
                           <div className="min-w-0 flex-1">
                             <p
@@ -651,6 +717,41 @@ export default function ShoppingListManager({
                                 )
                                 .join(", ")}
                             </p>
+                            {usesTouchInteractions && (
+                              <label className="mt-3 block">
+                                <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-primaryaccent/50">
+                                  Flytta till kategori
+                                </span>
+                                <select
+                                  value={group.key}
+                                  onChange={(event) => {
+                                    const nextGroupKey =
+                                      event.target.value as ShoppingCategoryKey;
+
+                                    if (nextGroupKey === group.key) {
+                                      return;
+                                    }
+
+                                    moveShoppingItem(
+                                      group.key,
+                                      item.normalizedLabel,
+                                      nextGroupKey,
+                                    );
+                                  }}
+                                  className="w-full rounded-xl border border-primaryaccent/15 bg-secondary/35 px-3 py-2 text-sm text-primaryaccent outline-none transition focus:border-secondaryaccent/40"
+                                  aria-label={`Flytta ${formatShoppingListItemLabel(item)} till en annan kategori`}
+                                >
+                                  {SHOPPING_CATEGORY_OPTIONS.map((categoryOption) => (
+                                    <option
+                                      key={categoryOption.key}
+                                      value={categoryOption.key}
+                                    >
+                                      {categoryOption.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                            )}
                           </div>
                           <button
                             type="button"
